@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.Models;
+using Restaurant.Models.RestaurantModels;
+using Restaurant.Models.Users;
 
 namespace Restaurant.Data;
 
-public partial class RestaurantContext : DbContext
+public partial class RestaurantContext : IdentityDbContext<IdentityUser>
 {
     public RestaurantContext(DbContextOptions<RestaurantContext> options)
         : base(options)
     {
     }
-    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public virtual DbSet<Bill> Bills { get; set; }
 
@@ -39,6 +41,9 @@ public partial class RestaurantContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+        SeedRoles(modelBuilder);
+
         modelBuilder
             .UseCollation("utf8mb4_0900_ai_ci")
             .HasCharSet("utf8mb4");
@@ -365,7 +370,7 @@ public partial class RestaurantContext : DbContext
             entity.Property(e => e.Roles)
                 .HasColumnType("enum('ADMIN','CUSTOMER','WAITER','CASHIER')")
                 .HasColumnName("roles");
-            entity.Property(e => e.Username)
+            entity.Property(e => e.UserName)
                 .HasMaxLength(50)
                 .HasColumnName("username");
         });
@@ -373,5 +378,15 @@ public partial class RestaurantContext : DbContext
         OnModelCreatingPartial(modelBuilder);
     }
 
+    private static void SeedRoles(ModelBuilder builder)
+    {
+        builder.Entity<IdentityRole>().HasData
+            (
+            new IdentityRole() { Name = "ADMIN", ConcurrencyStamp = "1", NormalizedName = "ADMIN" },
+            new IdentityRole() { Name = "CUSTORMER", ConcurrencyStamp = "2", NormalizedName = "CUSTORMER" },
+            new IdentityRole() { Name = "CASHIER", ConcurrencyStamp = "3", NormalizedName = "CASHIER" },
+            new IdentityRole() { Name = "WAITER", ConcurrencyStamp = "4", NormalizedName = "WAITER" }
+            );
+    }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

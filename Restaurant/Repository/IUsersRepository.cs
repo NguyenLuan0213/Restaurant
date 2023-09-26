@@ -1,4 +1,4 @@
-﻿using Restaurant.Models;
+﻿using Restaurant.Models.Users;
 
 namespace Restaurant.Repository
 {

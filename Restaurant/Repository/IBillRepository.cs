@@ -1,4 +1,5 @@
 ﻿using Restaurant.Models;
+using Restaurant.Models.RestaurantModels;
 
 namespace Restaurant.Repository
 {

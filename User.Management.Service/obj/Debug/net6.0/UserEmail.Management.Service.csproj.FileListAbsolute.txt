@@ -1,0 +1,12 @@
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\bin\Debug\net6.0\UserEmail.Management.Service.deps.json
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\bin\Debug\net6.0\UserEmail.Management.Service.dll
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\bin\Debug\net6.0\UserEmail.Management.Service.pdb
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\obj\Debug\net6.0\UserEmail.Management.Service.csproj.AssemblyReference.cache
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\obj\Debug\net6.0\UserEmail.Management.Service.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\obj\Debug\net6.0\UserEmail.Management.Service.AssemblyInfoInputs.cache
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\obj\Debug\net6.0\UserEmail.Management.Service.AssemblyInfo.cs
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\obj\Debug\net6.0\UserEmail.Management.Service.csproj.CoreCompileInputs.cache
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\obj\Debug\net6.0\UserEmail.Management.Service.dll
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\obj\Debug\net6.0\refint\UserEmail.Management.Service.dll
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\obj\Debug\net6.0\UserEmail.Management.Service.pdb
+C:\Users\Admin\Desktop\Restaurant\User.Management.Service\obj\Debug\net6.0\ref\UserEmail.Management.Service.dll

@@ -5,9 +5,11 @@ using Microsoft.IdentityModel.Tokens;
 using Restaurant.Models;
 using Restaurant.DTO;
 using Restaurant.Repository;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Restaurant.Controllers
 {
+    [Authorize(Roles = "ADMIN")]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase

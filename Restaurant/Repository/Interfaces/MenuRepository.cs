@@ -1,5 +1,5 @@
 ﻿using Restaurant.Data;
-using Restaurant.Models;
+using Restaurant.Models.RestaurantModels;
 using System.Xml.Linq;
 
 namespace Restaurant.Repository.Interfaces

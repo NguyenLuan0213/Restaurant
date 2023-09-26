@@ -1,5 +1,6 @@
 ﻿using Restaurant.Data;
 using Restaurant.Models;
+using Restaurant.Models.RestaurantModels;
 using Restaurant.Repository.Interfaces;
 
 namespace Restaurant.Repository

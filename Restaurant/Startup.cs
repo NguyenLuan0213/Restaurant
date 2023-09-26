@@ -1,26 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NETCore.MailKit.Core;
 using Restaurant.Converters;
 using Restaurant.Data;
-using Restaurant.Models.AuthenModel;
 using Restaurant.Repository;
 using Restaurant.Repository.Interfaces;
-using Swashbuckle.AspNetCore.Filters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using UserEmail.Management.Service.Models;
 
 namespace Restaurant
 {
@@ -49,6 +38,35 @@ namespace Restaurant
             services.AddScoped<IMeanItemRepository, MeanItemRepository>();
             services.AddScoped<IUsersRepository, UsersRepository>();
 
+            //JWT
+            services.AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<RestaurantContext>()
+                .AddDefaultTokenProviders();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = Configuration["JWT:ValidAudience"],
+                    ValidIssuer = Configuration["JWT:ValidIssuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Secret"]))
+                };
+            });
+
+            //var emailConfig = Configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>();
+            //services.AddSingleton(emailConfig);
+
+            //services.AddScoped<IEmailService, EmailService>();
+            //----------------------------------------------------------------------------//
 
             services.AddControllers().AddJsonOptions(options =>
             {
@@ -63,72 +81,34 @@ namespace Restaurant
                         Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.31-mysql"));
 
                 });
-            services.AddMvc();
 
-            // Cấu hình JWT
-            services.Configure<AppSetting>(Configuration.GetSection("AppSettings"));
-
-            var secretKey = Configuration["AppSettings:SecretKey"];
-            var secretKeyBytes = Encoding.UTF8.GetBytes(secretKey);
-            
-
-            services.AddAuthentication(item =>
+            services.AddSwaggerGen(option =>
             {
-                item.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                item.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-                
-                .AddJwtBearer(opt =>
+                option.SwaggerDoc("v1", new OpenApiInfo { Title = "Restaurant API", Version = "v1" });
+                option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    opt.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        //tự cấp token
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-
-                        //ký vào token
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes),
-
-                        ClockSkew = TimeSpan.Zero
-                    };
-                });
-            //// Cấu hình CORS
-            //services.AddCors(options =>
-            //{
-            //    options.AddPolicy("CorsPolicy", builder =>
-            //    {
-            //        builder.AllowAnyOrigin()
-            //            .AllowAnyMethod()
-            //            .AllowAnyHeader();
-            //    });
-            //});
-
-            //services.AddAuthorization(options =>
-            //{
-            //    options.AddPolicy("ADMIN", policy => policy.RequireClaim("role", "ADMIN"));
-            //    options.AddPolicy("CASHIER", policy => policy.RequireClaim("role", "CASHIER"));
-            //    options.AddPolicy("CUSTOMER", policy => policy.RequireClaim("role", "CUSTOMER"));
-            //});
-
-            services.AddSwaggerGen(options =>
-            {
-                options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-                {
-                    Description = "Standard Authorization header using the Bearer scheme (\"bearer {token}\")",
                     In = ParameterLocation.Header,
+                    Description = "Please enter a valid token",
                     Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "Bearer"
                 });
-
-                options.OperationFilter<SecurityRequirementsOperationFilter>();
-            });
-
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "MyWebApiApp", Version = "v1" });
-            });
-
+                option.AddSecurityRequirement(new OpenApiSecurityRequirement
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type=ReferenceType.SecurityScheme,
+                                    Id="Bearer"
+                                }
+                            },
+                            new string[]{}
+                        }
+                    });
+                 });
 
         }
 
@@ -138,7 +118,7 @@ namespace Restaurant
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "MyWebApiApp v1"));
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Restaurant v1"));
             }
 
             app.UseHttpsRedirection();

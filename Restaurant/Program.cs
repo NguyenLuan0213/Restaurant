@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Restaurant.Repository;
+using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Hosting;
 
 namespace Restaurant

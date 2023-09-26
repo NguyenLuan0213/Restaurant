@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.Models;
 using Restaurant.Dto;
 using Restaurant.Repository;
+using Restaurant.Models.RestaurantModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Restaurant.Controllers
 {
+    [Authorize(Roles = "ADMIN,CASHIER")]
     [Route("api/[controller]")]
     [ApiController]
     public class PromotionController : ControllerBase

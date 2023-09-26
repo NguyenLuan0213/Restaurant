@@ -2,6 +2,8 @@
 using Restaurant.Dto;
 using Restaurant.DTO;
 using Restaurant.Models;
+using Restaurant.Models.RestaurantModels;
+using Restaurant.Models.Users;
 
 namespace Restaurant_BE.Helper
 {

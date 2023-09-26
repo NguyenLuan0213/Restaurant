@@ -1,5 +1,5 @@
 ﻿using Restaurant.Data;
-using Restaurant.Models;
+using Restaurant.Models.Users;
 
 namespace Restaurant.Repository.Interfaces
 {
@@ -44,7 +44,7 @@ namespace Restaurant.Repository.Interfaces
 
         public User GetUserByUserName(string userName)
         {
-            return _context.Users.Where(u => u.Username == userName).FirstOrDefault();
+            return _context.Users.Where(u => u.UserName == userName).FirstOrDefault();
         }
 
         public ICollection<User> GetUsers()
@@ -116,7 +116,7 @@ namespace Restaurant.Repository.Interfaces
 
                 if (resultUser != null)
                 {
-                    resultUser.Username = user.Username;
+                    resultUser.UserName = user.UserName;
                     resultUser.Password = user.Password;
                     resultUser.Email = user.Email;
                     resultUser.Fullname = user.Fullname;
