@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using CloudinaryDotNet;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -6,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using NETCore.MailKit.Core;
 using Restaurant.Converters;
 using Restaurant.Data;
+using Restaurant.Models;
 using Restaurant.Repository;
 using Restaurant.Repository.Interfaces;
 using System.Text;
@@ -108,7 +110,17 @@ namespace Restaurant
                             new string[]{}
                         }
                     });
-                 });
+            });
+
+            var cloudinaryAccount = Configuration.GetSection("Cloudinary").Get<CloudinarySettings>();
+
+            // Khởi tạo đối tượng Cloudinary
+            Account cloudinaryCredentials = new Account(
+                cloudinaryAccount.CloudName,
+                cloudinaryAccount.ApiKey,
+                cloudinaryAccount.ApiSecret);
+
+            Cloudinary cloudinary = new Cloudinary(cloudinaryCredentials);
 
         }
 

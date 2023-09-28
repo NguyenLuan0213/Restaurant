@@ -49,7 +49,11 @@ namespace Restaurant.Repository.Interfaces
 
         public ICollection<User> GetUsers()
         {
-            return _context.Users.OrderBy(u => u.Id).ToList();
+            // Sử dụng LINQ để lấy danh sách người dùng từ cơ sở dữ liệu và sắp xếp theo Id.
+            var users = _context.Users.OrderBy(u => u.Id).ToList();
+
+            // Trả về danh sách người dùng.
+            return users;
         }
 
         public ICollection<User> GetUsersByFullName(string fullname)

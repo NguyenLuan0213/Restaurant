@@ -1,5 +1,6 @@
 ﻿//using Microsoft.AspNetCore.Identity;
 //using Microsoft.Extensions.Options;
+//using Restaurant.Models.Users;
 
 //namespace Restaurant.Data
 //{

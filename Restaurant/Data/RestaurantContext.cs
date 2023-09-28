@@ -153,6 +153,7 @@ public partial class RestaurantContext : IdentityDbContext<IdentityUser>
             entity.HasIndex(e => e.MenuItemId, "fk_meanItem_menuItem_idx");
 
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.TotalPrice).HasColumnName("totalPrice");
             entity.Property(e => e.MeanId).HasColumnName("mean_id");
             entity.Property(e => e.MenuItemId).HasColumnName("menuItem_id");
             entity.Property(e => e.Quantity).HasColumnName("quantity");

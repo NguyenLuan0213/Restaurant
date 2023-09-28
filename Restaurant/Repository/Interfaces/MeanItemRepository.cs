@@ -16,6 +16,17 @@ namespace Restaurant.Repository.Interfaces
         {
             try
             {
+                var menuItem = _context.Menuitems.FirstOrDefault(m => m.Id == meanitem.MenuItemId);
+                if (menuItem != null)
+                {
+                    meanitem.TotalPrice = meanitem.Quantity * menuItem.Price;
+                }
+                else
+                {
+                    // Xử lý khi không tìm thấy menuItem
+                    // Có thể gán TotalPrice = 0 hoặc xử lý khác tùy theo nhu cầu của bạn
+                }
+
                 _context.Meanitems.Add(meanitem);
                 return Save();
             }
@@ -60,6 +71,11 @@ namespace Restaurant.Repository.Interfaces
         public ICollection<Meanitem> GetMeanIteams()
         {
             return _context.Meanitems.OrderBy(m => m.Id).ToList();
+        }
+
+        public Menuitem GetMenuItemById(int menuItemId)
+        {
+            return _context.Menuitems.FirstOrDefault(m => m.Id == menuItemId);
         }
 
         public Meanitem GetMeanitemByMenuItemId(int menuItemId)

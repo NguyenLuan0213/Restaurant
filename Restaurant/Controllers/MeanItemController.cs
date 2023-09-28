@@ -88,23 +88,42 @@ namespace Restaurant.Controllers
             {
                 return BadRequest("Invalid data");
             }
-            
-            var meanItem = new Meanitem()
-            {
-                MeanId = meanItemDTO.MeanId,
-                MenuItemId = meanItemDTO.MenuItemId,
-                Quantity = meanItemDTO.Quantity
-            };
-            _mapper.Map<Meanitem>(meanItemDTO);
 
-            if(!_meanItemRepository.CreateMeanIteam(meanItem))
+            try
             {
-                return BadRequest("Unable to create mean item");
-            };
-            
-            var createdMeanItemDTO = _mapper.Map<MeanItemDTO>(meanItem);
+                var meanItem = new Meanitem()
+                {
+                    MeanId = meanItemDTO.MeanId,
+                    MenuItemId = meanItemDTO.MenuItemId,
+                    Quantity = meanItemDTO.Quantity
+                };
 
-            return CreatedAtAction(nameof(GetMenuItemById), new { id = createdMeanItemDTO.Id }, createdMeanItemDTO);
+                // Lấy giá trị giá bằng cách truy vấn từ bảng menuitem
+                var menuItem = _meanItemRepository.GetMenuItemById(meanItem.MenuItemId);
+
+                if (menuItem != null)
+                {
+                    meanItem.TotalPrice = meanItem.Quantity * menuItem.Price;
+                }
+                else
+                {
+                    // Xử lý khi không tìm thấy menuItem
+                    // Có thể gán TotalPrice = 0 hoặc xử lý khác tùy theo nhu cầu của bạn
+                }
+
+                if (!_meanItemRepository.CreateMeanIteam(meanItem))
+                {
+                    return BadRequest("Unable to create mean item");
+                };
+
+                var createdMeanItemDTO = _mapper.Map<MeanItemDTO>(meanItem);
+
+                return CreatedAtAction(nameof(GetMenuItemById), new { id = createdMeanItemDTO.Id }, createdMeanItemDTO);
+            }
+            catch (Exception)
+            {
+                return BadRequest("An error occurred while creating the mean item");
+            }
         }
 
         // PUT api/MeanItem/id

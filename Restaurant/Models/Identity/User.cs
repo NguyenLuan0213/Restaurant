@@ -25,6 +25,7 @@ public partial class User : IdentityUser<Guid>
 
     public string Roles { get; set; } = null!;
 
+    [NotMapped]
     public string? Image { get; set; }
 
     public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();

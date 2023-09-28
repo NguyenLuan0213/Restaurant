@@ -12,6 +12,6 @@
 
         public decimal Price { get; set; }
 
-        public string? Img { get; set; }
+        public IFormFile? Image { get; set; }
     }
 }

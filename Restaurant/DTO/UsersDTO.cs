@@ -1,8 +1,10 @@
-﻿namespace Restaurant.DTO
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Restaurant.DTO
 {
     public class UsersDTO
     {
-        public int Id { get; set; }
+        public string? Code { get; set; }
 
         public string? Username { get; set; }
 
@@ -17,7 +19,7 @@
         public string Address { get; set; }
 
         public string Roles { get; set; }
-
+        [NotMapped]
         public string? Image { get; set; }
     }
 }
