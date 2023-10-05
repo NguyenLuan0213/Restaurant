@@ -5,22 +5,27 @@ using Restaurant.Dto;
 using Restaurant.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Restaurant.Models.RestaurantModels;
-using Restaurant.Models;
+using Restaurant.Repository.Interfaces;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Restaurant.Controllers
 {
-    [Authorize(Roles = "ADMIN,CASHIER")]
+
     [Route("api/[controller]")]
     [ApiController]
     public class BillController : ControllerBase
     {
         private readonly IBillRepository _billRepository;
+        private readonly IOrdersRepository _ordersRepository;
+        private readonly IPromotionsRepository _promotionsRepository;
         private readonly IMapper _mapper;
 
-        public BillController(IBillRepository billRepository, IMapper mapper)
+        public BillController(IBillRepository billRepository, IMapper mapper, IOrdersRepository ordersRepository, IPromotionsRepository promotionsRepository)
         {
             _billRepository = billRepository;
             _mapper = mapper;
+            _ordersRepository = ordersRepository;
+            _promotionsRepository = promotionsRepository;
         }
 
         // GET: api/Bill
@@ -106,8 +111,9 @@ namespace Restaurant.Controllers
             return Ok(billDTOs);
         }
 
-        //post: api/Bill
+        // POST: api/Bill
         [HttpPost]
+        [Authorize(Roles = "ADMIN,CASHIER")]
         [ProducesResponseType(201, Type = typeof(BillDTO))]
         [ProducesResponseType(400)]
         public IActionResult CreateBill([FromBody] BillDTO billDTO)
@@ -117,14 +123,38 @@ namespace Restaurant.Controllers
                 return BadRequest("Invalid data");
             }
 
+            // Lấy thông tin của Order từ cơ sở dữ liệu bằng OrderId trong billDTO
+            var order = _ordersRepository.GetOrderById(billDTO.OrderId);
+
+            if (order == null)
+            {
+                return BadRequest("Order not found");
+            }
+
+            // Tính toán lại TotalAmount từ totalPrice của Order
+            decimal? totalAmount = order.TotalPrice;
+
+            // Kiểm tra xem Promotion có tồn tại không
+            var promotion = _promotionsRepository.GetPromotionId(billDTO.PromotionId ?? 0);
+            decimal? discountAmount = 0;
+            // Nếu Promotion không tồn tại, đặt DiscountAmount về 0
+            if (promotion != null)
+            {
+                discountAmount = totalAmount -(totalAmount * promotion.Discount)/100;
+            }    
+            else
+            {
+                discountAmount = totalAmount;
+            }
+
             var bill = new Bill()
             {
                 BillDate = billDTO.BillDate,
-                TotalAmount = billDTO.TotalAmount,
+                TotalAmount = totalAmount,
                 OrderId = billDTO.OrderId,
                 PromotionId = billDTO.PromotionId,
                 CustomerId = billDTO.CustomerId,
-                DiscountAmount = billDTO.DiscountAmount
+                DiscountAmount = discountAmount
             };
 
             _mapper.Map<Bill>(billDTO);
@@ -134,41 +164,72 @@ namespace Restaurant.Controllers
                 return BadRequest("Unable to create bill");
             }
 
-            var createBillDTO = _mapper.Map<BillDTO>(bill);
+            var createdBillDTO = _mapper.Map<BillDTO>(bill);
 
-            return CreatedAtAction(nameof(GetBillId), new { id = createBillDTO.Id }, createBillDTO);
+            return CreatedAtAction(nameof(GetBillId), new { id = createdBillDTO.Id }, createdBillDTO);
         }
-
-        //put: api/Bill/id
+        
+        // PUT: api/Bill/update/{id}
         [HttpPut("update/{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult UpdateBill(int id, [FromBody] BillDTO billDTO)
+        [Authorize(Roles = "ADMIN,CASHIER")]
+        public async Task<IActionResult> UpdateBill(int id, [FromBody] BillDTO billDTO)
         {
-            if (billDTO == null || id != billDTO.Id)
+            if (billDTO == null)
             {
                 return BadRequest("Invalid data");
             }
-            //Kiểm tra xem bill có tồn tại không
+
+            // Kiểm tra xem bill có tồn tại không
             if (!_billRepository.BillExists(id))
             {
                 return NotFound();
             }
-            //Ánh xạ dữ liệu từ DTO sang Model
-            var bill = new Bill()
-            {
-                Id = billDTO.Id,
-                BillDate = billDTO.BillDate,
-                TotalAmount = billDTO.TotalAmount,
-                OrderId = billDTO.OrderId,
-                PromotionId = billDTO.PromotionId,
-                CustomerId = billDTO.CustomerId,
-                DiscountAmount = billDTO.DiscountAmount
-            };
-            _mapper.Map<Bill>(billDTO);
 
-            //Thực hiện cập nhật trong database
+            // Lấy thông tin bill từ cơ sở dữ liệu
+            var bill = _billRepository.GetBillId(id);
+
+            if (bill == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy thông tin của Order từ cơ sở dữ liệu bằng OrderId trong billDTO
+            var order = _ordersRepository.GetOrderById(billDTO.OrderId);
+
+            if (order == null)
+            {
+                return NotFound("Order not found");
+            }
+
+            // Kiểm tra xem Promotion có tồn tại không
+            var promotion = _promotionsRepository.GetPromotionId(billDTO.PromotionId ?? 0);
+
+            // Tính toán lại TotalAmount từ totalPrice của Order và Discount của Promotion (nếu có)
+            decimal? totalAmount = order.TotalPrice;
+            bill.TotalAmount = totalAmount;
+
+            if (promotion != null)
+            {
+                bill.DiscountAmount = bill.TotalAmount - (bill.TotalAmount * promotion.Discount)/100;
+            }
+            else
+            {
+                bill.DiscountAmount = bill.TotalAmount;
+            }    
+
+            // Cập nhật thông tin Bill
+            bill.Id = billDTO.Id;
+            bill.BillDate = billDTO.BillDate;
+            bill.OrderId = billDTO.OrderId;
+            bill.PromotionId = billDTO.PromotionId;
+            bill.CustomerId = billDTO.CustomerId;
+            
+            
+
+            // Thực hiện cập nhật trong database
             if (!_billRepository.updateBill(bill))
             {
                 return BadRequest("Unable to update bill");
@@ -177,11 +238,14 @@ namespace Restaurant.Controllers
             return NoContent();
         }
 
+
+
         // DELETE: api/Bill/id
         [HttpDelete("delete/{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
+        [Authorize(Roles = "ADMIN,CASHIER")]
         public IActionResult DeleteBill(int id)
         {
             if (!_billRepository.BillExists(id))

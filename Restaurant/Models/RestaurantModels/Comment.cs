@@ -1,21 +1,21 @@
-﻿using System;
+﻿using Restaurant.Models.Users;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using Restaurant.Models.Users;
 
 namespace Restaurant.Models.RestaurantModels;
 
-public partial class Comment
+public class Comment
 {
     public int Id { get; set; }
 
-    public int CustomerId { get; set; }
+    public Guid CustomerId { get; set; }
 
     public int RestaurantId { get; set; }
 
     public int Rating { get; set; }
 
     public string? ReviewText { get; set; }
+
     public DateOnly CommentDate { get; set; }
 
     public virtual User Customer { get; set; } = null!;

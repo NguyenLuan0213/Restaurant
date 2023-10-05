@@ -8,11 +8,11 @@
 
         public DateTime BillDate { get; set; }
 
-        public decimal TotalAmount { get; set; }
+        public decimal? TotalAmount { get; set; }
 
-        public decimal? DiscountAmount { get; set; }
+        public decimal? DiscountAmount { get; set; } 
 
-        public int CustomerId { get; set; }
+        public Guid? CustomerId { get; set; }
 
         public int? PromotionId { get; set; }
     }

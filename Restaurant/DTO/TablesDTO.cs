@@ -12,6 +12,6 @@
 
         public string Status { get; set; } = null!;
 
-        public int IdWaiter { get; set; }
+        public Guid? IdWaiter { get; set; }
     }
 }

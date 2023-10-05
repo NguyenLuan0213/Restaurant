@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Restaurant.Models.RestaurantModels;
 
-public partial class Meanitem
+public class Meanitem
 {
     public int Id { get; set; }
 
@@ -15,7 +15,7 @@ public partial class Meanitem
 
     public decimal? TotalPrice { get; set; }
 
-    public virtual Mean? Mean { get; set; }
+    public virtual Mean Mean { get; set; } = null!;
 
-    public virtual Menuitem? MenuItem { get; set; }
+    public virtual Menuitem MenuItem { get; set; } = null!;
 }

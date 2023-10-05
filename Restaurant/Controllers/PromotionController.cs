@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Restaurant.Controllers
 {
-    [Authorize(Roles = "ADMIN,CASHIER")]
+    //[Authorize(Roles = "ADMIN,CASHIER")]
     [Route("api/[controller]")]
     [ApiController]
     public class PromotionController : ControllerBase

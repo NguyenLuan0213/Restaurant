@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Restaurant.Controllers
 {
-    [Authorize(Roles = "ADMIN,CASHIER")]
+    //[Authorize(Roles = "ADMIN,CASHIER")]
     [Route("api/[controller]")]
     [ApiController]
     public class MenusController : ControllerBase
@@ -88,6 +88,7 @@ namespace Restaurant.Controllers
                 RestaurantId = menuDTO.RestaurantId
 
             };
+
             _mapper.Map<Menu>(menuDTO);
 
             if (!_menuRepository.CreateMenu(menu))

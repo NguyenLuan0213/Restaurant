@@ -13,5 +13,23 @@ namespace Restaurant.Models.SignUp
 
         [Required(ErrorMessage = "Password is required")]
         public string? Password { get; set; }
+
+        [Required(ErrorMessage = "Phone Number is required")]
+        public string? PhoneNumber { get; set; }
+
+        [Required(ErrorMessage = "Address is required")]
+        public string? Address { get; set; }
+
+        [Required(ErrorMessage = "Fullname is required")]
+        public string? Fullname { get; set; }
+
+        [Required(ErrorMessage = "BirthDay is required")]
+        public DateOnly? BirthDay { get; set; }
+
+        [Required(ErrorMessage = "Gender is required")]
+        public string? Gender { get; set; }
+
+        [Required(ErrorMessage = "Roles is required")]
+        public string? Roles { get; set; }
     }
 }

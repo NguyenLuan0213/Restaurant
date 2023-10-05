@@ -1,5 +1,4 @@
 ﻿using Restaurant.Data;
-using Restaurant.Models;
 using Restaurant.Models.RestaurantModels;
 using Restaurant.Repository.Interfaces;
 
@@ -53,62 +52,6 @@ namespace Restaurant.Repository
             }
         }
 
-        public Bill GetBillByBillDate(DateTime BillDate)
-        {
-            return _context.Bills.Where(b => b.BillDate == BillDate).FirstOrDefault();
-        }
-
-        public Bill GetBillByDiscountAmount(decimal DiscountAmount)
-        {
-            return _context.Bills.Where(b => b.DiscountAmount == DiscountAmount).FirstOrDefault();
-        }
-
-        public Bill GetBillByTotalAmount(decimal TotalAmount)
-        {
-            return _context.Bills.Where(b => b.TotalAmount == TotalAmount).FirstOrDefault();
-        }
-
-        public Bill GetBillId(int id)
-        {
-            return _context.Bills.Where(b => b.Id == id).FirstOrDefault();
-        }
-
-        public ICollection<Bill> GetBills()
-        {
-            return _context.Bills.OrderBy(b => b.Id).ToList();
-        }
-
-        public ICollection<Bill> GetBillsByBillDate(DateTime billDate)
-        {
-            return _context.Bills.Where(b => b.BillDate.Date == billDate.Date).ToList();
-        }
-
-        public ICollection<Bill> GetBillsByCustomerId(int customerId)
-        {
-            return _context.Bills.Where(b => b.CustomerId == customerId).ToList();
-        }
-
-        //public ICollection<Bill> GetBillsByCustomerName(string customerName)
-        //{
-        //    return _context.Bills.Where(b => b.User.Name == customerName).ToList();
-        //}
-
-        public ICollection<Bill> GetBillsByOrderId(int orderId)
-        {
-            return _context.Bills.Where(b => b.OrderId == orderId).ToList();
-        }
-
-        public ICollection<Bill> GetBillsByPromotionId(int promotionId)
-        {
-            return _context.Bills.Where(b => b.PromotionId == promotionId).ToList();
-        }
-
-        public bool Save()
-        {
-            var saved = _context.SaveChanges();
-            return saved >= 0 ? true : false;
-        }
-
         public bool updateBill(Bill bill)
         {
             try
@@ -139,5 +82,61 @@ namespace Restaurant.Repository
             }
 
         }
+
+        public Bill GetBillByBillDate(DateTime BillDate)
+        {
+            return _context.Bills.Where(b => b.BillDate == BillDate).FirstOrDefault();
+        }
+
+        public Bill GetBillByDiscountAmount(decimal DiscountAmount)
+        {
+            return _context.Bills.Where(b => b.DiscountAmount == DiscountAmount).FirstOrDefault();
+        }
+
+        public Bill GetBillByTotalAmount(decimal TotalAmount)
+        {
+            return _context.Bills.Where(b => b.TotalAmount == TotalAmount).FirstOrDefault();
+        }
+
+        public Bill GetBillId(int id)
+        {
+            return _context.Bills.Where(b => b.Id == id).FirstOrDefault();
+        }
+
+        public ICollection<Bill> GetBills()
+        {
+            return _context.Bills.OrderBy(b => b.Id).ToList();
+        }
+
+        public ICollection<Bill> GetBillsByBillDate(DateTime billDate)
+        {
+            return _context.Bills.Where(b => b.BillDate.Date == billDate.Date).ToList();
+        }
+
+        public ICollection<Bill> GetBillsByCustomerId(Guid customerId)
+        {
+            return _context.Bills.Where(b => b.CustomerId == customerId).ToList();
+        }
+
+        //public ICollection<Bill> GetBillsByCustomerName(string customerName)
+        //{
+        //    return _context.Bills.Where(b => b.User.Name == customerName).ToList();
+        //}
+
+        public ICollection<Bill> GetBillsByOrderId(int orderId)
+        {
+            return _context.Bills.Where(b => b.OrderId == orderId).ToList();
+        }
+
+        public ICollection<Bill> GetBillsByPromotionId(int promotionId)
+        {
+            return _context.Bills.Where(b => b.PromotionId == promotionId).ToList();
+        }
+
+        public bool Save()
+        {
+            var saved = _context.SaveChanges();
+            return saved >= 0 ? true : false;
+        }  
     }
 }

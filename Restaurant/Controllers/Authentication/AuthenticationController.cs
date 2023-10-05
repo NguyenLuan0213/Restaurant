@@ -8,6 +8,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using NuGet.Protocol.Core.Types;
+using Restaurant.Models.Users;
+using Restaurant.Models.Identity;
 
 namespace Restaurant.Controllers.Authentication
 {
@@ -15,13 +18,13 @@ namespace Restaurant.Controllers.Authentication
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly IConfiguration _configuration;
 
-        public AuthenticationController(UserManager<IdentityUser> userManager,
-            RoleManager<IdentityRole> roleManager,SignInManager<IdentityUser> signInManager,
+        public AuthenticationController(UserManager<User> userManager,
+            RoleManager<Role> roleManager, SignInManager<User> signInManager,
             IConfiguration configuration)
         {
             _userManager = userManager;
@@ -30,38 +33,48 @@ namespace Restaurant.Controllers.Authentication
             _configuration = configuration;
         }
 
-        [HttpPost("registy")]
-        public async Task<IActionResult> Register([FromBody] RegisterUser registerUser, string role)
+        [HttpPost("registry")]
+        public async Task<IActionResult> Register([FromBody] RegisterUser registerUser)
         {
 
             //Check User
             var userExist = await _userManager.FindByEmailAsync(registerUser.Email);
-            if(userExist !=null)
+            if (userExist != null)
             {
                 return StatusCode(StatusCodes.Status403Forbidden,
                     new Response { Status = "Error", Message = "User already exists!" });
-            }    
-             
+            }
+
             //Create User in database
-            IdentityUser user = new IdentityUser()
+            var user = new User()
             {
                 Email = registerUser.Email,
                 UserName = registerUser.Username,
+                PhoneNumber = registerUser.PhoneNumber,
+                Address = registerUser.Address,
+                Fullname = registerUser.Fullname,
+                BrithDay = registerUser.BirthDay,
+                Gender = registerUser.Gender,
                 SecurityStamp = Guid.NewGuid().ToString()
             };
-            if(await _roleManager.RoleExistsAsync(role))
+            if (await _roleManager.RoleExistsAsync(registerUser.Roles))
             {
                 var result = await _userManager.CreateAsync(user, registerUser.Password);
+
                 if (!result.Succeeded)
                 {
+                    var errors = result.Errors;
                     return StatusCode(StatusCodes.Status500InternalServerError,
                         new Response { Status = "Error", Message = "User Failed to Create" });
                 }
 
-                await _userManager.AddToRoleAsync(user, role);
+                await _userManager.AddToRoleAsync(user, registerUser.Roles);
                 {
-                    return Ok(new Response { Status = "Success",
-                        Message = "User Created Successfully" });
+                    return Ok(new Response
+                    {
+                        Status = "Success",
+                        Message = "User Created Successfully"
+                    });
                 }
             }
             else
@@ -71,22 +84,22 @@ namespace Restaurant.Controllers.Authentication
             }
         }
 
-    //    [HttpGet("email")]
-    //    public async Task<IActionResult> ConfirmEmail(string token, string email)
-    //    {
-    //        var user = await _userManager.FindByEmailAsync(email);
-    //        if (user != null)
-    //        {
-    //            var result = await _userManager.ConfirmEmailAsync(user, token);
-    //            if (result.Succeeded)
-    //            {
-    //                return StatusCode(StatusCodes.Status200OK,
-    //                  new Response { Status = "Success", Message = "Email Verified Successfully" });
-    //            }
-    //        }
-    //        return StatusCode(StatusCodes.Status500InternalServerError,
-    //                   new Response { Status = "Error", Message = "This User Doesnot exist!" });
-    //    }
+        //    [HttpGet("email")]
+        //    public async Task<IActionResult> ConfirmEmail(string token, string email)
+        //    {
+        //        var user = await _userManager.FindByEmailAsync(email);
+        //        if (user != null)
+        //        {
+        //            var result = await _userManager.ConfirmEmailAsync(user, token);
+        //            if (result.Succeeded)
+        //            {
+        //                return StatusCode(StatusCodes.Status200OK,
+        //                  new Response { Status = "Success", Message = "Email Verified Successfully" });
+        //            }
+        //        }
+        //        return StatusCode(StatusCodes.Status500InternalServerError,
+        //                   new Response { Status = "Error", Message = "This User Doesnot exist!" });
+        //    }
 
 
 
@@ -95,44 +108,51 @@ namespace Restaurant.Controllers.Authentication
         public async Task<IActionResult> Login([FromBody] LoginModel loginModel)
         {
             var user = await _userManager.FindByNameAsync(loginModel.Username);
-            if (user.TwoFactorEnabled)
-            {
-                await _signInManager.SignOutAsync();
-                await _signInManager.PasswordSignInAsync(user, loginModel.Password, false, true);
-                var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
 
-                //var message = new Message(new string[] { user.Email! }, "OTP Confrimation", token);
-                //_emailService.SendEmail(message);
-
-                return StatusCode(StatusCodes.Status200OK,
-                 new Response { Status = "Success", Message = $"We have sent an OTP to your Email {user.Email}" });
-            }
-            if (user != null && await _userManager.CheckPasswordAsync(user, loginModel.Password))
+            if (user != null)
             {
-                var authClaims = new List<Claim>
+                var loginResult = await _signInManager.PasswordSignInAsync(user, loginModel.Password, false, true);
+
+                if (loginResult.Succeeded)
                 {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-                var userRoles = await _userManager.GetRolesAsync(user);
-                foreach (var role in userRoles)
-                {
-                    authClaims.Add(new Claim(ClaimTypes.Role, role));
+                    if (user.TwoFactorEnabled)
+                    {
+                        var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+
+                        //var message = new Message(new string[] { user.Email! }, "OTP Confirmation", token);
+                        //_emailService.SendEmail(message);
+
+                        return StatusCode(StatusCodes.Status200OK,
+                         new Response { Status = "Success", Message = $"We have sent an OTP to your Email {user.Email}" });
+                    }
+
+                    var authClaims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.MobilePhone, user.PhoneNumber),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            };
+                    var userRoles = await _userManager.GetRolesAsync(user);
+                    foreach (var role in userRoles)
+                    {
+                        authClaims.Add(new Claim(ClaimTypes.Role, role));
+                    }
+
+                    var jwtToken = GetToken(authClaims);
+
+                    return Ok(new
+                    {
+                        token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+                        expiration = jwtToken.ValidTo,
+                    });
                 }
-
-
-                var jwtToken = GetToken(authClaims);
-
-                return Ok(new
-                {
-                    token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
-                    expiration = jwtToken.ValidTo
-                });
-                //returning the token...
-
             }
-            return Unauthorized();
+
+            // Trả về BadRequest nếu đăng nhập thất bại
+            return BadRequest(new Response { Status = "Error", Message = "Invalid username or password" });
         }
+
 
 
         private JwtSecurityToken GetToken(List<Claim> authClaims)
@@ -149,5 +169,66 @@ namespace Restaurant.Controllers.Authentication
 
             return token;
         }
+
+        [HttpPost("roles")]
+        public async Task<IActionResult> CreateRole([FromBody] string role)
+        {
+            if (await _roleManager.RoleExistsAsync(role))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                                       new Response { Status = "Error", Message = "Role already exists!" });
+            }
+            var roles = new Role()
+            {
+                Name = role,
+                NormalizedName = role.ToUpper(),
+                ConcurrencyStamp = Guid.NewGuid().ToString()
+            };
+            var result = await _roleManager.CreateAsync(roles);
+            if (!result.Succeeded)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                                       new Response { Status = "Error", Message = "Role Creation Failed" });
+            }
+            return Ok(new Response { Status = "Success", Message = "Role Created Successfully" });
+        }
+
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("jwt");
+
+            return Ok(new
+            {
+                message = "success"
+            });
+        }
+
+        [HttpGet("user")]
+        public async Task<IActionResult> GetUser(string username)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+            if (user != null)
+            {
+                var userRoles = await _userManager.GetRolesAsync(user); // Lấy danh sách các roles của người dùng
+
+                var userInformation = new
+                {
+                    Id = user.Id,
+                    FullName = user?.Fullname, // Giả sử bạn có thuộc tính FullName trong ApplicationUser
+                    Email = user?.Email,
+                    PhoneNumber = user?.PhoneNumber,
+                    Address = user?.Address,
+                    Gender = user?.Gender,
+                    BirthDay = user?.BrithDay,
+                    Roles = userRoles // Danh sách các roles của người dùng
+                };
+
+                return Ok(userInformation);
+            }
+            return NotFound(); // Hoặc Unauthorized nếu bạn muốn ẩn thông tin về sự không tồn tại của người dùng
+        }
+
     }
 }

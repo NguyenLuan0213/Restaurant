@@ -1,17 +1,25 @@
 ﻿using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using dotenv.net;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NETCore.MailKit.Core;
 using Restaurant.Converters;
 using Restaurant.Data;
 using Restaurant.Models;
+using Restaurant.Models.Identity;
+using Restaurant.Models.Users;
 using Restaurant.Repository;
 using Restaurant.Repository.Interfaces;
+using Stripe;
 using System.Text;
 using UserEmail.Management.Service.Models;
+using Role = Restaurant.Models.Identity.Role;
 
 namespace Restaurant
 {
@@ -38,13 +46,45 @@ namespace Restaurant
             services.AddScoped<ICommentRepository, CommentRepository>();
             services.AddScoped<IMeanRepository, MeanRepository>();
             services.AddScoped<IMeanItemRepository, MeanItemRepository>();
-            services.AddScoped<IUsersRepository, UsersRepository>();
-
-            //JWT
-            services.AddIdentity<IdentityUser, IdentityRole>()
+            //services.AddScoped<IUsersRepository, UsersRepository>();
+            services.AddSingleton<ISystemClock, SystemClock>();
+            services.AddIdentity<User, Role>()
                 .AddEntityFrameworkStores<RestaurantContext>()
                 .AddDefaultTokenProviders();
 
+            //JWT
+
+            //services.Configure<IdentityOptions>(options =>
+            //{
+            //    // Password settings
+            //    options.Password.RequireDigit = true;
+            //    options.Password.RequiredLength = 10;
+            //    options.Password.RequireNonAlphanumeric = true;
+            //    options.Password.RequireUppercase = false;
+            //    options.Password.RequireLowercase = false;
+            //    options.Password.RequiredUniqueChars = 6;
+
+            //    // Lockout settings
+            //    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromDays(1);
+            //    options.Lockout.MaxFailedAccessAttempts = 10;
+            //    options.Lockout.AllowedForNewUsers = true;
+
+            //    // User settings
+            //    options.User.RequireUniqueEmail = true;
+            //});
+
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder =>
+                {
+                    builder
+                    .WithOrigins(new[] { "http://localhost:3000", "https://localhost:7274" })
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+                });
+            });
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -112,16 +152,21 @@ namespace Restaurant
                     });
             });
 
-            var cloudinaryAccount = Configuration.GetSection("Cloudinary").Get<CloudinarySettings>();
+            var cloudinaryConfig = Configuration.GetSection("Cloudinary").Get<CloudinarySettings>();
+            var account = new CloudinaryDotNet.Account(cloudinaryConfig.CloudName, cloudinaryConfig.ApiKey, cloudinaryConfig.ApiSecret);
+            var cloudinary = new Cloudinary(account);
 
-            // Khởi tạo đối tượng Cloudinary
-            Account cloudinaryCredentials = new Account(
-                cloudinaryAccount.CloudName,
-                cloudinaryAccount.ApiKey,
-                cloudinaryAccount.ApiSecret);
-
-            Cloudinary cloudinary = new Cloudinary(cloudinaryCredentials);
-
+            //Sripe
+            services.AddDistributedMemoryCache();
+            StripeConfiguration.ApiKey = Configuration["Stripe:SecretKey"];
+            
+            services.AddRouting(options => options.LowercaseUrls = true);
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // Thời gian phiên tồn tại
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true; // Đảm bảo phiên là bắt buộc
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -132,14 +177,19 @@ namespace Restaurant
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Restaurant v1"));
             }
+            
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseCors("AllowAll");
+
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+            app.UseSession();
 
             app.UseStatusCodePages();
 

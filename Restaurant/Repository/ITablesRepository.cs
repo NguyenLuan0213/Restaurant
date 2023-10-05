@@ -9,7 +9,7 @@ namespace Restaurant.Repository
         Table GetTableByNumber(int TableNumber);
         Table GetTableBySeats(int seats);
         Table GetTableByStatus(string status);
-        Table GetTableByWaiterId(int waiterId);
+        Table GetTableByWaiterId(Guid waiterId);
         ICollection<Table> GetTablesByRestaurantId(int restaurantId);
         ICollection<Table> GetTablesByRestaurantIdAndStatus(int restaurantId, string status);
         bool CreateTable(Table table);

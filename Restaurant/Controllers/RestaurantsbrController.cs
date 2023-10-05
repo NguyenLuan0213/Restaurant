@@ -1,14 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.Data;
 using Restaurant.Dto;
 using Restaurant.Repository;
 using Restaurant.Models.RestaurantModels;
 using Microsoft.AspNetCore.Authorization;
+using Restaurant.Data;
 
 namespace Restaurant.Controllers
 {
-    [Authorize(Roles = "ADMIN,CASHIER")]
+    //[Authorize(Roles = "ADMIN,CASHIER")]
     [Route("api/[controller]")]
     [ApiController]
     public class RestaurantsbrController :ControllerBase

@@ -1,4 +1,5 @@
-﻿using Restaurant.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using Restaurant.Data;
 using Restaurant.Models.RestaurantModels;
 
 namespace Restaurant.Repository.Interfaces
@@ -18,6 +19,33 @@ namespace Restaurant.Repository.Interfaces
             {
                 _context.Orders.Add(order);
                 return Save();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public bool UpdateOrder(Order order)
+        {
+            try
+            {
+                var resultOrder = _context.Orders.FirstOrDefault(r => r.Id == order.Id);
+
+                if (resultOrder != null)
+                {
+                    resultOrder.Cashier = order.Cashier;
+                    resultOrder.TableId = order.TableId;
+                    resultOrder.OrderTime = order.OrderTime;
+                    resultOrder.Status = order.Status;
+                    _context.SaveChanges(); // Lưu thay đổi vào cơ sở dữ liệu
+
+                    return true; // Trả về true nếu cập nhật thành công
+                }
+                else
+                {
+                    return false; // Trả về false nếu không tìm thấy order
+                }
             }
             catch (Exception)
             {
@@ -65,7 +93,7 @@ namespace Restaurant.Repository.Interfaces
             return _context.Orders.OrderBy(o => o.Id).ToList();
         }
 
-        public ICollection<Order> GetOrdersByCashierId(int cashierId)
+        public ICollection<Order> GetOrdersByCashierId(Guid cashierId)
         {
             return _context.Orders.Where(o => o.CashierId == cashierId).ToList();
         }
@@ -94,34 +122,6 @@ namespace Restaurant.Repository.Interfaces
         {
             var saved = _context.SaveChanges();
             return saved >= 0 ? true : false;
-        }
-
-        public bool UpdateOrder(Order order)
-        {
-            try
-            {
-                var resultOrder = _context.Orders.FirstOrDefault(r => r.Id == order.Id);
-
-                if (resultOrder != null)
-                {
-                    resultOrder.Cashier = order.Cashier;
-                    resultOrder.TableId = order.TableId;
-                    resultOrder.OrderTime = order.OrderTime;
-                    resultOrder.Status = order.Status;
-
-                    _context.SaveChanges(); // Lưu thay đổi vào cơ sở dữ liệu
-
-                    return true; // Trả về true nếu cập nhật thành công
-                }
-                else
-                {
-                    return false; // Trả về false nếu không tìm thấy order
-                }
-            }
-            catch (Exception)
-            {
-                return false;
-            }
         }
     }
 }

@@ -69,7 +69,7 @@ namespace Restaurant.Repository.Interfaces
             return _context.Tables.Where(t => t.Status == status).FirstOrDefault();
         }
 
-        public Table GetTableByWaiterId(int waiterId)
+        public Table GetTableByWaiterId(Guid waiterId)
         {
             return _context.Tables.Where(t => t.IdWaiter == waiterId).FirstOrDefault();
         }

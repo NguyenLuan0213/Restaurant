@@ -1,23 +1,24 @@
-﻿using System;
+﻿using Restaurant.Models.Users;
+using System;
 using System.Collections.Generic;
-using Restaurant.Models.RestaurantModels;
-using Restaurant.Models.Users;
+using System.ComponentModel.DataAnnotations;
 
-namespace Restaurant.Models;
+namespace Restaurant.Models.RestaurantModels;
 
-public partial class Bill
+public class Bill
 {
+    [Key]
     public int Id { get; set; }
 
     public int OrderId { get; set; }
 
     public DateTime BillDate { get; set; }
 
-    public decimal TotalAmount { get; set; }
+    public decimal? TotalAmount { get; set; }
 
     public decimal? DiscountAmount { get; set; }
 
-    public int? CustomerId { get; set; }
+    public Guid? CustomerId { get; set; }
 
     public int? PromotionId { get; set; }
 

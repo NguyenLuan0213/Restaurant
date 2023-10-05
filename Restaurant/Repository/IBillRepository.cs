@@ -1,5 +1,4 @@
-﻿using Restaurant.Models;
-using Restaurant.Models.RestaurantModels;
+﻿using Restaurant.Models.RestaurantModels;
 
 namespace Restaurant.Repository
 {
@@ -15,7 +14,7 @@ namespace Restaurant.Repository
 
         Bill GetBillByDiscountAmount(decimal DiscountAmount);
 
-        ICollection<Bill> GetBillsByCustomerId(int customerId);
+        ICollection<Bill> GetBillsByCustomerId(Guid customerId);
 
         //ICollection<Bill> GetBillsByCustomerName(string customerName);
         ICollection<Bill> GetBillsByBillDate(DateTime BillDate);

@@ -8,6 +8,7 @@ namespace Restaurant.Repository
         Mean GetMeanById(int id);
         ICollection<Mean> GetMeanByMeanItem(int id);
         ICollection<Mean> GetMeanByOrderId(int orderId);
+
         bool CreateMean(Mean mean);
         bool UpdateMean(Mean mean);
         bool DeleteMean(int id);

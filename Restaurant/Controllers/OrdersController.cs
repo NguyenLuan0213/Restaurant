@@ -5,21 +5,24 @@ using Restaurant.Dto;
 using Restaurant.Repository;
 using Restaurant.Models.RestaurantModels;
 using Microsoft.AspNetCore.Authorization;
+using Restaurant.Repository.Interfaces;
 
 namespace Restaurant.Controllers
 {
-    [Authorize(Roles = "ADMIN,CASHIER")]
+    //[Authorize(Roles = "ADMIN,CASHIER")]
     [Route("api/[controller]")]
     [ApiController]
     public class OrdersController : ControllerBase
     {
         private readonly IOrdersRepository _ordersRepository;
+        private readonly IMeanRepository _meanRepository;
         private readonly IMapper _mapper;
 
-        public OrdersController(IOrdersRepository ordersRepository, IMapper mapper)
+        public OrdersController(IOrdersRepository ordersRepository, IMapper mapper, IMeanRepository meanRepository)
         {
             _ordersRepository = ordersRepository;
             _mapper = mapper;
+            _meanRepository = meanRepository;
         }
 
         // GET: api/Orders
@@ -114,7 +117,7 @@ namespace Restaurant.Controllers
         [ProducesResponseType(201, Type = typeof(List<OrderDTO>))]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult GetOrdersByCashierId(int cashierId)
+        public IActionResult GetOrdersByCashierId(Guid cashierId)
         {
             var orders = _ordersRepository.GetOrdersByCashierId(cashierId);
             if (orders == null || orders.Count == 0)
@@ -137,13 +140,18 @@ namespace Restaurant.Controllers
             {
                 return BadRequest("Invalid data");
             }
-            var order = new Order()
-            {
-                OrderTime = orderDTO.OrderTime,
-                Status = orderDTO.Status,
-                TableId = orderDTO.TableId,
-                CashierId = orderDTO.CashierId
-            };
+            // Tạo một đối tượng Order từ orderDTO
+            var order = _mapper.Map<Order>(orderDTO);
+
+            // Lấy danh sách Mean của Order
+            var means = _meanRepository.GetMeanByOrderId(order.Id);
+
+            // Tính tổng totalPrice từ các Mean
+            decimal? orderTotalPrice = means.Sum(mean => mean.TotalPrice);
+
+            // Cập nhật totalPrice của Order
+            order.TotalPrice = orderTotalPrice ?? 0;
+
 
             _mapper.Map<Order>(orderDTO);
 
@@ -167,7 +175,7 @@ namespace Restaurant.Controllers
         [ProducesResponseType(404)]
         public IActionResult UpdateOrder(int id, [FromBody] OrderDTO orderDTO)
         {
-            if (orderDTO == null || id != orderDTO.Id)
+            if (orderDTO == null )
             {
                 return BadRequest("Invalid data");
             }
@@ -176,16 +184,27 @@ namespace Restaurant.Controllers
             {
                 return NotFound();
             }
-
-            //Ánh xạ lại đối tượng thành DTO để trả về client
-            var order = new Order()
+            //Lấy order theo Id
+            var order = _ordersRepository.GetOrderById(id);
+            if (order == null)
             {
-                Id = orderDTO.Id,
-                OrderTime = orderDTO.OrderTime,
-                Status = orderDTO.Status,
-                TableId = orderDTO.TableId,
-                CashierId = orderDTO.CashierId
-            };
+                return NotFound();
+            }
+            //Ánh xạ lại đối tượng thành DTO để trả về client
+            order.Id = orderDTO.Id;
+            order.OrderTime = orderDTO.OrderTime;
+            order.Status = orderDTO.Status;
+            order.TableId = orderDTO.TableId;
+            order.CashierId = orderDTO.CashierId;
+
+            var means = _meanRepository.GetMeanByOrderId(order.Id);
+
+            // Tính tổng totalPrice của các Mean
+            decimal? orderTotalPrice = means.Sum(mean => mean.TotalPrice);
+
+            // Gán giá trị totalPrice cho Order
+            order.TotalPrice = orderTotalPrice;
+
             _mapper.Map<Order>(orderDTO);
 
             //Thực hiện cập nhật

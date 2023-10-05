@@ -81,7 +81,7 @@ namespace Restaurant.Repository.Interfaces
             return _context.Comments.Where(c => c.CommentDate == commentDate).ToList();
         }
 
-        public ICollection<Comment> GetCommentsByCustomerId(int customerId)
+        public ICollection<Comment> GetCommentsByCustomerId(Guid customerId)
         {
             return _context.Comments.Where(c => c.CustomerId == customerId).ToList();
         }

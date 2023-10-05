@@ -100,12 +100,23 @@ namespace Restaurant.Repository.Interfaces
             {
                 var resultMeanitem = _context.Meanitems.FirstOrDefault(r => r.Id == meanitem.Id);
 
+
                 if (resultMeanitem != null)
                 {
                     resultMeanitem.MeanId = meanitem.MeanId;
                     resultMeanitem.MenuItemId = meanitem.MenuItemId;
                     resultMeanitem.Quantity = meanitem.Quantity;
-
+                    // Tính toán TotalPrice khi cập nhật
+                    var menuItem = _context.Menuitems.FirstOrDefault(m => m.Id == meanitem.MenuItemId);
+                    if (menuItem != null)
+                    {
+                        resultMeanitem.TotalPrice = meanitem.Quantity * menuItem.Price;
+                    }
+                    else
+                    {
+                        // Xử lý khi không tìm thấy menuItem
+                        // Có thể gán TotalPrice = 0 hoặc xử lý khác tùy theo nhu cầu của bạn
+                    }
                     _context.SaveChanges(); // Lưu thay đổi vào cơ sở dữ liệu
 
                     return true; // Trả về true nếu cập nhật thành công

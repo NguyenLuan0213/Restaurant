@@ -8,7 +8,7 @@ namespace Restaurant.Repository
         Order GetOrderById(int id);
         Order GetOrderByOrderDate(DateTime OrderDate);
         Order GetOrderByOrderStatus(string Status);
-        ICollection<Order> GetOrdersByCashierId(int cashierId);
+        ICollection<Order> GetOrdersByCashierId(Guid cashierId);
         ICollection<Order> GetOrdersByOrderDate(DateTime OrderDate);
         ICollection<Order> GetOrdersByOrderStatus(string Status);
         ICollection<Order> GetOrdersByTableId(int tableId);

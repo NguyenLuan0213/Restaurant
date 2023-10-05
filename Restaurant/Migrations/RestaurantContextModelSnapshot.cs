@@ -22,10 +22,11 @@ namespace Restaurant.Migrations
 
             MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4");
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+            modelBuilder.Entity("Restaurant.Models.Identity.Role", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(255)");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -45,40 +46,10 @@ namespace Restaurant.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "cf0b06de-0600-4d0d-b87d-00b9cf96f763",
-                            ConcurrencyStamp = "1",
-                            Name = "ADMIN",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = "9bb1cda4-a489-4346-b983-bd43503607f4",
-                            ConcurrencyStamp = "2",
-                            Name = "CUSTORMER",
-                            NormalizedName = "CUSTORMER"
-                        },
-                        new
-                        {
-                            Id = "bc4a88c3-92d6-4272-95df-122523c7d0d2",
-                            ConcurrencyStamp = "3",
-                            Name = "CASHIER",
-                            NormalizedName = "CASHIER"
-                        },
-                        new
-                        {
-                            Id = "600dcb41-d6de-44cb-8cc8-21562844c564",
-                            ConcurrencyStamp = "4",
-                            Name = "WAITER",
-                            NormalizedName = "WAITER"
-                        });
+                    b.ToTable("roles", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+            modelBuilder.Entity("Restaurant.Models.Identity.RoleClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -90,82 +61,17 @@ namespace Restaurant.Migrations
                     b.Property<string>("ClaimValue")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("RoleId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("RoleClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
-
-                    b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+            modelBuilder.Entity("Restaurant.Models.Identity.UserClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -177,18 +83,17 @@ namespace Restaurant.Migrations
                     b.Property<string>("ClaimValue")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("UserClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+            modelBuilder.Entity("Restaurant.Models.Identity.UserLogin", b =>
                 {
                     b.Property<string>("LoginProvider")
                         .HasColumnType("varchar(255)");
@@ -199,36 +104,35 @@ namespace Restaurant.Migrations
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("UserLogins", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+            modelBuilder.Entity("Restaurant.Models.Identity.UserRole", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("varchar(255)");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
 
-                    b.Property<string>("RoleId")
-                        .HasColumnType("varchar(255)");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("char(36)");
 
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("UserRoles", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+            modelBuilder.Entity("Restaurant.Models.Identity.UserToken", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("varchar(255)");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("LoginProvider")
                         .HasColumnType("varchar(255)");
@@ -241,10 +145,10 @@ namespace Restaurant.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Restaurant.Models.Bill", b =>
+            modelBuilder.Entity("Restaurant.Models.RestaurantModels.Bill", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -255,9 +159,12 @@ namespace Restaurant.Migrations
                         .HasColumnType("timestamp")
                         .HasColumnName("bill_date");
 
-                    b.Property<int?>("CustomerId")
-                        .HasColumnType("int")
-                        .HasColumnName("customer_id");
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("customer_id")
+                        .UseCollation("ascii_general_ci");
+
+                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<Guid?>("CustomerId"), "ascii");
 
                     b.Property<decimal?>("DiscountAmount")
                         .HasPrecision(10, 2)
@@ -272,7 +179,7 @@ namespace Restaurant.Migrations
                         .HasColumnType("int")
                         .HasColumnName("promotion_id");
 
-                    b.Property<decimal>("TotalAmount")
+                    b.Property<decimal?>("TotalAmount")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)")
                         .HasColumnName("total_amount");
@@ -302,9 +209,12 @@ namespace Restaurant.Migrations
                         .HasColumnType("date")
                         .HasColumnName("comment_date");
 
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int")
-                        .HasColumnName("customer_id");
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("customer_id")
+                        .UseCollation("ascii_general_ci");
+
+                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<Guid>("CustomerId"), "ascii");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int")
@@ -345,6 +255,10 @@ namespace Restaurant.Migrations
                         .HasColumnType("int")
                         .HasColumnName("order_id");
 
+                    b.Property<decimal?>("TotalPrice")
+                        .HasColumnType("decimal(65,30)")
+                        .HasColumnName("totalPrice");
+
                     b.HasKey("Id")
                         .HasName("PRIMARY");
 
@@ -360,17 +274,21 @@ namespace Restaurant.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id");
 
-                    b.Property<int?>("MeanId")
+                    b.Property<int>("MeanId")
                         .HasColumnType("int")
                         .HasColumnName("mean_id");
 
-                    b.Property<int?>("MenuItemId")
+                    b.Property<int>("MenuItemId")
                         .HasColumnType("int")
                         .HasColumnName("menuItem_id");
 
                     b.Property<int?>("Quantity")
                         .HasColumnType("int")
                         .HasColumnName("quantity");
+
+                    b.Property<decimal?>("TotalPrice")
+                        .HasColumnType("decimal(65,30)")
+                        .HasColumnName("totalPrice");
 
                     b.HasKey("Id")
                         .HasName("PRIMARY");
@@ -461,9 +379,12 @@ namespace Restaurant.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id");
 
-                    b.Property<int>("CashierId")
-                        .HasColumnType("int")
-                        .HasColumnName("cashier_id");
+                    b.Property<Guid?>("CashierId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("cashier_id")
+                        .UseCollation("ascii_general_ci");
+
+                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<Guid?>("CashierId"), "ascii");
 
                     b.Property<DateTime>("OrderTime")
                         .HasColumnType("timestamp")
@@ -477,6 +398,10 @@ namespace Restaurant.Migrations
                     b.Property<int>("TableId")
                         .HasColumnType("int")
                         .HasColumnName("table_id");
+
+                    b.Property<decimal?>("TotalPrice")
+                        .HasColumnType("decimal(65,30)")
+                        .HasColumnName("totalPrice");
 
                     b.HasKey("Id")
                         .HasName("PRIMARY");
@@ -570,9 +495,12 @@ namespace Restaurant.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id");
 
-                    b.Property<int>("IdWaiter")
-                        .HasColumnType("int")
-                        .HasColumnName("id_waiter");
+                    b.Property<Guid?>("IdWaiter")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("id_waiter")
+                        .UseCollation("ascii_general_ci");
+
+                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<Guid?>("IdWaiter"), "ascii");
 
                     b.Property<int>("RestaurantId")
                         .HasColumnType("int")
@@ -591,8 +519,13 @@ namespace Restaurant.Migrations
                         .HasColumnType("int")
                         .HasColumnName("table_number");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("char(36)");
+
                     b.HasKey("Id")
                         .HasName("PRIMARY");
+
+                    b.HasIndex("UserId");
 
                     b.HasIndex(new[] { "RestaurantId" }, "fk_restaurant_idx");
 
@@ -605,40 +538,41 @@ namespace Restaurant.Migrations
 
             modelBuilder.Entity("Restaurant.Models.Users.User", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
+                        .HasColumnType("char(36)");
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
                     b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("address");
+                        .HasColumnType("longtext");
+
+                    b.Property<DateOnly?>("BrithDay")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("Code")
+                        .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
                         .HasColumnType("longtext");
 
                     b.Property<string>("Email")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("email");
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Fullname")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("fullname");
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Gender")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Image")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("image");
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");
@@ -647,35 +581,24 @@ namespace Restaurant.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("NormalizedEmail")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("NormalizedUserName")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("Password")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("password");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("longtext");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("phone");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Roles")
-                        .IsRequired()
-                        .HasColumnType("enum('ADMIN','CUSTOMER','WAITER','CASHIER')")
-                        .HasColumnName("roles");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
@@ -684,70 +607,85 @@ namespace Restaurant.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("UserName")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("username");
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
 
-                    b.HasKey("Id")
-                        .HasName("PRIMARY");
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("users", (string)null);
-
-                    MySqlEntityTypeBuilderExtensions.UseCollation(b, "utf8mb4_unicode_ci");
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+            modelBuilder.Entity("Restaurant.Models.Identity.RoleClaim", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                        .WithMany()
+                    b.HasOne("Restaurant.Models.Identity.Role", "Roles")
+                        .WithMany("RoleClaims")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Roles");
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+            modelBuilder.Entity("Restaurant.Models.Identity.UserClaim", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
-                        .WithMany()
+                    b.HasOne("Restaurant.Models.Users.User", "User")
+                        .WithMany("Claims")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Restaurant.Models.Bill", b =>
+            modelBuilder.Entity("Restaurant.Models.Identity.UserLogin", b =>
+                {
+                    b.HasOne("Restaurant.Models.Users.User", "User")
+                        .WithMany("Logins")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Restaurant.Models.Identity.UserRole", b =>
+                {
+                    b.HasOne("Restaurant.Models.Identity.Role", "Roles")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Restaurant.Models.Users.User", "User")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Roles");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Restaurant.Models.Identity.UserToken", b =>
+                {
+                    b.HasOne("Restaurant.Models.Users.User", "User")
+                        .WithMany("Tokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Restaurant.Models.RestaurantModels.Bill", b =>
                 {
                     b.HasOne("Restaurant.Models.Users.User", "Customer")
                         .WithMany("Bills")
@@ -806,11 +744,15 @@ namespace Restaurant.Migrations
                     b.HasOne("Restaurant.Models.RestaurantModels.Mean", "Mean")
                         .WithMany("Meanitems")
                         .HasForeignKey("MeanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_meanItem_mean");
 
                     b.HasOne("Restaurant.Models.RestaurantModels.Menuitem", "MenuItem")
                         .WithMany("Meanitems")
                         .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_meanItem_menuItem");
 
                     b.Navigation("Mean");
@@ -845,7 +787,6 @@ namespace Restaurant.Migrations
                     b.HasOne("Restaurant.Models.Users.User", "Cashier")
                         .WithMany("Orders")
                         .HasForeignKey("CashierId")
-                        .IsRequired()
                         .HasConstraintName("fk_order_cashier");
 
                     b.HasOne("Restaurant.Models.RestaurantModels.Table", "Table")
@@ -872,22 +813,24 @@ namespace Restaurant.Migrations
 
             modelBuilder.Entity("Restaurant.Models.RestaurantModels.Table", b =>
                 {
-                    b.HasOne("Restaurant.Models.Users.User", "IdWaiterNavigation")
-                        .WithMany("Tables")
-                        .HasForeignKey("IdWaiter")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_restaurant_waiter");
-
                     b.HasOne("Restaurant.Models.RestaurantModels.Restaurantsbr", "Restaurant")
                         .WithMany("Tables")
                         .HasForeignKey("RestaurantId")
                         .IsRequired()
                         .HasConstraintName("fk_restaurant");
 
-                    b.Navigation("IdWaiterNavigation");
+                    b.HasOne("Restaurant.Models.Users.User", null)
+                        .WithMany("Tables")
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Restaurant");
+                });
+
+            modelBuilder.Entity("Restaurant.Models.Identity.Role", b =>
+                {
+                    b.Navigation("RoleClaims");
+
+                    b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("Restaurant.Models.RestaurantModels.Mean", b =>
@@ -937,11 +880,19 @@ namespace Restaurant.Migrations
                 {
                     b.Navigation("Bills");
 
+                    b.Navigation("Claims");
+
                     b.Navigation("Comments");
+
+                    b.Navigation("Logins");
 
                     b.Navigation("Orders");
 
                     b.Navigation("Tables");
+
+                    b.Navigation("Tokens");
+
+                    b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
         }

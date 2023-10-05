@@ -6,6 +6,7 @@ using Restaurant.DTO;
 using Restaurant.Repository;
 using Restaurant.Models.RestaurantModels;
 using Microsoft.AspNetCore.Authorization;
+using Restaurant.Repository.Interfaces;
 
 namespace Restaurant.Controllers
 {
@@ -15,11 +16,13 @@ namespace Restaurant.Controllers
     public class MeanController : ControllerBase
     {
         private readonly IMeanRepository _meanRepository;
+        private readonly IMeanItemRepository _meanItemRepository;
         private readonly IMapper _mapper;
 
-        public MeanController(IMeanRepository meanRepository, IMapper mapper)
+        public MeanController(IMeanRepository meanRepository, IMapper mapper, IMeanItemRepository meanItemRepository)
         {
             _meanRepository = meanRepository;
+            _meanItemRepository = meanItemRepository;
             _mapper = mapper;
         }
 
@@ -92,6 +95,15 @@ namespace Restaurant.Controllers
                 Description = meanDTO.Description,
             };
 
+            // Lấy danh sách MeanItem dựa trên mean.Id
+            var meanItems = _meanItemRepository.GetMeanIteamByMeanId(mean.Id);
+
+            // Tính tổng totalPrice của các MeanItem
+            decimal? totalPrice = meanItems.Sum(item => item.TotalPrice);
+
+            // Cập nhật giá trị totalPrice của Mean
+            mean.TotalPrice = totalPrice;
+
             _mapper.Map<Mean>(meanDTO);
 
             if (!_meanRepository.CreateMean(mean))
@@ -111,34 +123,42 @@ namespace Restaurant.Controllers
         [ProducesResponseType(404)]
         public IActionResult UpdateMean(int id, [FromBody] MeanDTO meanDTO)
         {
-            if (meanDTO == null || id != meanDTO.Id)
+            if (meanDTO == null)
             {
                 return BadRequest("Invalid data");
             }
-            //Kiểm tra xem mean có tồn tại không
-            if (!_meanRepository.MeanExists(id))
+
+            // Kiểm tra xem mean có tồn tại không
+            var mean = _meanRepository.GetMeanById(id);
+            if (mean == null)
             {
                 return NotFound();
             }
 
-            //Ánh xạ meanDTO sang mean
-            var mean = new Mean()
-            {
-                Id = meanDTO.Id,
-                OrderId = meanDTO.OrderId,
-                Description = meanDTO.Description,
-            };
-            _mapper.Map<Mean>(meanDTO);
+            // Ánh xạ meanDTO sang mean
+            mean.Id = meanDTO.Id;
+            mean.Description = meanDTO.Description;
+            mean.OrderId = meanDTO.OrderId;
 
-            //Thực hiện update mean vào database
+            // Lấy danh sách MeanItem có cùng meanId
+            var meanItems = _meanItemRepository.GetMeanIteamByMeanId(id);
+
+            // Tính tổng totalPrice của các MeanItem
+            decimal? totalPrice = meanItems.Sum(item => item.TotalPrice);
+
+            // Cập nhật giá trị totalPrice của Mean
+            mean.TotalPrice = totalPrice;
+
+            // Thực hiện update mean vào database
             if (!_meanRepository.UpdateMean(mean))
             {
                 return BadRequest("Unable to update mean");
             }
 
-            //Trả về response code 204 - No Content sau khi update thành công
+            // Trả về response code 204 - No Content sau khi update thành công
             return NoContent();
         }
+
 
 
         // DELETE: api/Mean/id

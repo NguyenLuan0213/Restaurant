@@ -12,6 +12,38 @@ namespace Restaurant.Repository.Interfaces
             _context = context;
         }
 
+        public bool UpdateMean(Mean mean)
+        {
+            try
+            {
+                var existingMean = _context.Means.FirstOrDefault(r => r.Id == mean.Id);
+
+                if (existingMean != null)
+                {
+                    existingMean.OrderId = mean.OrderId;
+                    existingMean.Description = mean.Description;
+
+                    // Lấy danh sách MeanItem có cùng meanId
+                    var meanItems = _context.Meanitems.Where(item => item.MeanId == mean.Id).ToList();
+
+                    // Tính tổng totalPrice của các MeanItem
+                    decimal? totalPrice = meanItems.Sum(item => item.TotalPrice);
+
+                    // Cập nhật giá trị totalPrice của Mean
+                    existingMean.TotalPrice = totalPrice;
+
+                    _context.SaveChanges(); // Lưu thay đổi vào cơ sở dữ liệu
+
+                    return true; // Trả về true nếu cập nhật thành công
+                }
+                return false; // Trả về false nếu không tìm thấy Mean cần cập nhật
+            }
+            catch (Exception)
+            {
+                return false; // Xử lý lỗi và trả về false nếu có lỗi xảy ra
+            }
+        }
+
         public bool CreateMean(Mean mean)
         {
             try
@@ -73,35 +105,12 @@ namespace Restaurant.Repository.Interfaces
             return saved >= 0 ? true : false;
         }
 
-        public bool UpdateMean(Mean mean)
-        {
-            try
-            {
-                var resultMeans = _context.Means.FirstOrDefault(r => r.Id == mean.Id);
-
-                if (resultMeans != null)
-                {
-                    resultMeans.OrderId = mean.OrderId;
-                    resultMeans.Description = mean.Description;
-
-                    _context.SaveChanges(); // Lưu thay đổi vào cơ sở dữ liệu
-
-                    return true; // Trả về true nếu cập nhật thành công
-                }
-                else
-                {
-                    return false; // Trả về false nếu không tìm thấy nhà hàng
-                }
-            }
-            catch (Exception)
-            {
-                return false; // Xử lý lỗi và trả về false nếu có lỗi xảy ra
-            }
-        }
+       
 
         ICollection<Mean> IMeanRepository.GetMeanByOrderId(int orderId)
         {
             return _context.Means.Where(m => m.OrderId == orderId).ToList();
         }
+
     }
 }

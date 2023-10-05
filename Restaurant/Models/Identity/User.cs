@@ -1,31 +1,20 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Restaurant.Models.Identity;
 using Restaurant.Models.RestaurantModels;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Restaurant.Models.Users;
 
-public partial class User : IdentityUser<Guid>
+public class User : IdentityUser<Guid>
 {
-    public int Id { get; set; }
-
-    public string? UserName { get; set; }
-
     public string? Password { get; set; }
-
     public string? Email { get; set; }
-
-    public string Fullname { get; set; } = null!;
-
-    public string Phone { get; set; } = null!;
-
-    public string Address { get; set; } = null!;
-
-    public string Roles { get; set; } = null!;
-
-    [NotMapped]
+    public string? Gender { get; set; }
+    public string? Fullname { get; set; } 
+    public DateOnly? BrithDay { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string? Address { get; set; } 
     public string? Image { get; set; }
 
     public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
@@ -35,6 +24,12 @@ public partial class User : IdentityUser<Guid>
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     public virtual ICollection<Table> Tables { get; set; } = new List<Table>();
+
+
+    public virtual ICollection<UserClaim> Claims { get; set; }
+    public virtual ICollection<UserLogin> Logins { get; set; }
+    public virtual ICollection<UserToken> Tokens { get; set; }
+    public virtual ICollection<UserRole> UserRoles { get; set; }
 
 
 }

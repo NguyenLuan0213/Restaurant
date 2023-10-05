@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Restaurant.Models.Users;
+using System;
 using System.Collections.Generic;
-using Restaurant.Models.Users;
 
 namespace Restaurant.Models.RestaurantModels;
 
-public partial class Order
+public class Order
 {
     public int Id { get; set; }
 
-    public int CashierId { get; set; }
+    public Guid? CashierId { get; set; }
 
     public int TableId { get; set; }
 
@@ -16,9 +16,11 @@ public partial class Order
 
     public string Status { get; set; } = null!;
 
+    public decimal? TotalPrice { get; set; }
+
     public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
 
-    public virtual User Cashier { get; set; } = null!;
+    public virtual User? Cashier { get; set; }
 
     public virtual ICollection<Mean> Means { get; set; } = new List<Mean>();
 

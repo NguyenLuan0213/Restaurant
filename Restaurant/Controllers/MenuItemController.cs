@@ -9,10 +9,13 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Stripe;
+using Restaurant.DTO;
+using Restaurant.Repository.Interfaces;
 
 namespace Restaurant.Controllers
 {
-    [Authorize(Roles = "ADMIN,CASHIER")]
+    //[Authorize(Roles = "ADMIN,CASHIER")]
     [Route("api/[controller]")]
     [ApiController]
     public class MenuItemController : ControllerBase
@@ -23,12 +26,11 @@ namespace Restaurant.Controllers
 
         public MenuItemController(IMenuItemRepository menuItemRepository, IMapper mapper)
         {
-            var cloudinaryCredentials = new Account(
+            var cloudinaryCredentials = new CloudinaryDotNet.Account(
             "dkba7robk",
             "325815158184357",
             "TxTGacbxcxoBBarPbpPwB4XCuc0");
             _cloudinary = new Cloudinary(cloudinaryCredentials);
-
             _menuItemRepository = menuItemRepository;
             _mapper = mapper;
         }
@@ -102,22 +104,20 @@ namespace Restaurant.Controllers
         }
 
         // POST: api/MenuItem
-        [HttpPost]
-        [ProducesResponseType(201, Type = typeof(MenuItemDTO))]
+        [HttpPost("add")]
+        [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult CreateMenuItem([FromBody] MenuItemDTO menuItemDTO, IFormFile file)
+        public IActionResult addMenuItem([FromForm] MenuItemDTO menuItemDTO,IFormFile file)
         {
             if (menuItemDTO == null)
             {
-                return BadRequest("Invalid data");
+                return BadRequest(ModelState);
             }
-
             if (file == null || file.Length == 0)
             {
                 return BadRequest("Không có tệp ảnh được gửi lên.");
             }
-
             // Tải ảnh lên Cloudinary
             var uploadParams = new ImageUploadParams
             {
@@ -135,19 +135,16 @@ namespace Restaurant.Controllers
             {
                 Name = menuItemDTO.Name,
                 Description = menuItemDTO.Description,
-                Price = menuItemDTO.Price,
                 MenuId = menuItemDTO.MenuId,
-                Image = imageUrl// Lưu URL của ảnh vào Menuitem
+                Price = menuItemDTO.Price,
+                Image = imageUrl,
             };
-            _mapper.Map<MenuItemDTO>(menuItem);
-
+            _mapper.Map<Menuitem>(menuItemDTO);
             if (!_menuItemRepository.CreateMenuItem(menuItem))
             {
-                return BadRequest("Unable to create menu item");
+                return BadRequest("Uanble to create menu");
             }
-
             var createdMenuItemDTO = _mapper.Map<MenuItemDTO>(menuItem);
-
             return CreatedAtAction(nameof(GetMenuItemId), new { id = createdMenuItemDTO.Id }, createdMenuItemDTO);
         }
 
@@ -156,7 +153,7 @@ namespace Restaurant.Controllers
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult UpdateMenuItem(int id, [FromBody] MenuItemDTO menuItemDTO)
+        public IActionResult UpdateMenuItem(int id, [FromForm] MenuItemDTO menuItemDTO, IFormFile file)
         {
             if (menuItemDTO == null || id != menuItemDTO.Id)
             {
@@ -167,15 +164,48 @@ namespace Restaurant.Controllers
             {
                 return NotFound();
             }
-
-            var menuItem = new Menuitem()
+            if (file == null || file.Length == 0)
             {
-                Id = menuItemDTO.Id,
-                Name = menuItemDTO.Name,
-                Description = menuItemDTO.Description,
-                Price = menuItemDTO.Price,
-                MenuId = menuItemDTO.MenuId,
-            };
+                return BadRequest("Không có tệp ảnh được gửi lên.");
+            }
+            //// Tải ảnh lên Cloudinary
+            //var uploadParams = new ImageUploadParams
+            //{
+            //    File = new FileDescription(file.FileName, file.OpenReadStream()),
+            //    Transformation = new Transformation().Crop("fill").Width(400).Height(400),
+            //    // Cấu hình các biến đổi hoặc options khác nếu cần
+            //};
+
+            //var uploadResult = _cloudinary.Upload(uploadParams);
+
+            //// Lấy URL công khai của ảnh trên Cloudinary
+            //var imageUrl = uploadResult.SecureUri.AbsoluteUri;
+            var menuItem = _menuItemRepository.GetMenuItemById(id);
+
+            menuItem.Id = menuItemDTO.Id;
+            menuItem.Name = menuItemDTO.Name;
+            menuItem.Description = menuItemDTO.Description;
+            menuItem.Price = menuItemDTO.Price;
+            menuItem.Image = menuItemDTO.Image;
+            // Kiểm tra xem có tệp hình ảnh mới không
+            if (file != null && file.Length > 0)
+            {
+                // Tải ảnh lên Cloudinary hoặc thực hiện xử lý ảnh khác tùy ý ở đây
+                var uploadParams = new ImageUploadParams
+                {
+                    File = new FileDescription(file.FileName, file.OpenReadStream()),
+                    Transformation = new Transformation().Crop("fill").Width(400).Height(400),
+                    // Cấu hình các biến đổi hoặc options khác nếu cần
+                };
+
+                var uploadResult = _cloudinary.Upload(uploadParams);
+
+                // Lấy URL công khai của ảnh trên Cloudinary
+                var imageUrl = uploadResult.SecureUri.AbsoluteUri;
+
+                menuItem.Image = imageUrl;
+            }
+
             _mapper.Map<Menuitem>(menuItemDTO);
 
             if (!_menuItemRepository.UpdateMenuItem(menuItem))

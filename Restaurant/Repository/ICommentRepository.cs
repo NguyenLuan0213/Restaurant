@@ -9,7 +9,7 @@ namespace Restaurant.Repository
         Comment GetCommentByRating(int rating);
         Comment GetCommentByReviewText(string reviewText);
         Comment GetCommentByCommentDate(DateOnly commentDate);
-        ICollection<Comment> GetCommentsByCustomerId(int customerId);
+        ICollection<Comment> GetCommentsByCustomerId(Guid customerId);
         ICollection<Comment> GetCommentsByRestaurantId(int restaurantId);
         ICollection<Comment> GetCommentsByCommentDate(DateOnly commentDate);
         ICollection<Comment> GetCommentsByRating(int rating);

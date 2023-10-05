@@ -6,7 +6,7 @@ namespace Restaurant.Dto
     {
         public int Id { get; set; }
 
-        public int CustomerId { get; set; }
+        public Guid CustomerId { get; set; }
 
         public int RestaurantId { get; set; }
 

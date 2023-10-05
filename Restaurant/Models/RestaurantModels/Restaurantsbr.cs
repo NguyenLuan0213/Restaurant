@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Restaurant.Models.RestaurantModels;
 
-public partial class Restaurantsbr
+public class Restaurantsbr
 {
     public int Id { get; set; }
 

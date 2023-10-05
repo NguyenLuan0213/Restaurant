@@ -4,7 +4,6 @@ namespace Restaurant.DTO
 {
     public class UsersDTO
     {
-        public string? Code { get; set; }
 
         public string? Username { get; set; }
 

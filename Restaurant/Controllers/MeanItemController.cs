@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Restaurant.Controllers
 {
-    [Authorize(Roles = "ADMIN,CASHIER")]
+    //[Authorize(Roles = "ADMIN,CASHIER")]
     [Route("api/[controller]")]
     [ApiController]
     public class MeanItemController : ControllerBase
@@ -133,7 +133,7 @@ namespace Restaurant.Controllers
         [ProducesResponseType(404)]
         public IActionResult UpdateMeanItem(int id, [FromBody] MeanItemDTO meanItemDTO)
         {
-            if (meanItemDTO == null || id != meanItemDTO.Id)
+            if (meanItemDTO == null)
             {
                 return BadRequest("Invalid data");
             }
@@ -141,18 +141,31 @@ namespace Restaurant.Controllers
             {
                 return NotFound();
             }
-            var meanItem = new Meanitem()
+
+            var meanItem = _meanItemRepository.GetMeanIteamById(id);
+
+            if (meanItem == null)
             {
-                Id = meanItemDTO.Id,
-                MeanId = meanItemDTO.MeanId,
-                MenuItemId = meanItemDTO.MenuItemId,
-                Quantity = meanItemDTO.Quantity
-            };
-            _mapper.Map<Meanitem>(meanItemDTO);
+                return NotFound();
+            }
+
+            // Cập nhật các thuộc tính của meanItem từ meanItemDTO
+            meanItem.MeanId = meanItemDTO.MeanId;
+            meanItem.MenuItemId = meanItemDTO.MenuItemId;
+            meanItem.Quantity = meanItemDTO.Quantity;
+
+            // Tính toán TotalPrice
+            var menuItem = _meanItemRepository.GetMenuItemById(meanItem.MenuItemId);
+            if (menuItem != null)
+            {
+                meanItem.TotalPrice = meanItem.Quantity * menuItem.Price;
+            }
+
             if (!_meanItemRepository.UpdateMeanIteam(meanItem))
             {
                 return BadRequest("Unable to update mean item");
             };
+
             return NoContent();
         }
 
