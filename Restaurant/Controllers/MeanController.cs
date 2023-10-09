@@ -10,7 +10,7 @@ using Restaurant.Repository.Interfaces;
 
 namespace Restaurant.Controllers
 {
-    [Authorize(Roles = "ADMIN,CASHIER")]
+    //[Authorize(Roles = "ADMIN,CASHIER")]
     [Route("api/[controller]")]
     [ApiController]
     public class MeanController : ControllerBase
@@ -57,25 +57,25 @@ namespace Restaurant.Controllers
             return Ok(mean);
         }
 
-        // GET: api/Mean/orderId
-        [HttpGet("order/{orderId}")]
-        [ProducesResponseType(200, Type = typeof(Mean))]
-        [ProducesResponseType(400)]
-        public IActionResult GetMeanByOrderId(int orderId)
-        {
-            if (!_meanRepository.MeanExists(orderId))
-            {
-                return NotFound();
-            }
+        //// GET: api/Mean/orderId
+        //[HttpGet("order/{orderId}")]
+        //[ProducesResponseType(200, Type = typeof(Mean))]
+        //[ProducesResponseType(400)]
+        //public IActionResult GetMeanByOrderId(int orderId)
+        //{
+        //    if (!_meanRepository.MeanExists(orderId))
+        //    {
+        //        return NotFound();
+        //    }
 
-            var mean = _meanRepository.GetMeanByOrderId(orderId);
-            if (mean == null || !mean.Any())
-            {
-                return BadRequest();
-            }
-            var meanDTO = _mapper.Map<ICollection<MeanDTO>>(mean);
-            return Ok(meanDTO);
-        }
+        //    var mean = _meanRepository.GetMeanByOrderId(orderId);
+        //    if (mean == null || !mean.Any())
+        //    {
+        //        return BadRequest();
+        //    }
+        //    var meanDTO = _mapper.Map<ICollection<MeanDTO>>(mean);
+        //    return Ok(meanDTO);
+        //}
 
         // POST: api/Mean
         [HttpPost]
@@ -91,7 +91,7 @@ namespace Restaurant.Controllers
 
             var mean = new Mean()
             {
-                OrderId = meanDTO.OrderId,
+                //OrderId = meanDTO.OrderId,
                 Description = meanDTO.Description,
             };
 
@@ -138,7 +138,7 @@ namespace Restaurant.Controllers
             // Ánh xạ meanDTO sang mean
             mean.Id = meanDTO.Id;
             mean.Description = meanDTO.Description;
-            mean.OrderId = meanDTO.OrderId;
+            //mean.OrderId = meanDTO.OrderId;
 
             // Lấy danh sách MeanItem có cùng meanId
             var meanItems = _meanItemRepository.GetMeanIteamByMeanId(id);

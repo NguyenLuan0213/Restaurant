@@ -1,16 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
 using Restaurant.Data;
 using Restaurant.Models.RestaurantModels;
+using Restaurant.Models.Users;
 
 namespace Restaurant.Repository.Interfaces
 {
     public class OrdersRepository : IOrdersRepository
     {
         private readonly RestaurantContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public OrdersRepository(RestaurantContext context)
+        public OrdersRepository(RestaurantContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public bool CreateOrder(Order order)
@@ -70,7 +73,6 @@ namespace Restaurant.Repository.Interfaces
             {
                 return false; // Xử lý lỗi tại đây nếu cần thiết, ví dụ: ghi log hoặc trả về false
             }
-
         }
 
         public Order GetOrderById(int id)
@@ -123,5 +125,75 @@ namespace Restaurant.Repository.Interfaces
             var saved = _context.SaveChanges();
             return saved >= 0 ? true : false;
         }
+
+        public Order CreateNewOrder(Guid? cashierId, int? tableId, decimal totalPrice, string status, List<Meanitem> meanItems, DateTime orderTime, Guid? customerId, User customer)
+        {
+            if (!customerId.HasValue)
+            {
+                customerId = customer.Id;
+            }
+            else
+            {
+                // Kiểm tra xem người dùng đã tồn tại trong cơ sở dữ liệu
+                var existingCustomer = _context.Users.FirstOrDefault(u => u.Id == customerId);
+
+                if (existingCustomer != null)
+                {
+                    customer = existingCustomer;
+                }
+            }
+
+            // Tạo một đối tượng Order mới
+            var newOrder = new Order
+            {
+                CashierId = cashierId,
+                CustomerId = customerId,
+                TableId = tableId,
+                TotalPrice = totalPrice,
+                Status = status,
+                OrderTime = orderTime, // Set thời gian cho đơn hàng
+            };
+
+            // Tạo một đối tượng Mean mới
+            var newMean = new Mean
+            {
+                Description = "Mô tả của Mean",
+                TotalPrice = 0 // Tạm thời đặt giá trị TotalPrice của Mean là 0
+            };
+
+            // Liên kết Order và Mean bằng mối quan hệ 1-1
+            newOrder.Means = newMean;
+
+            // Thêm các MeanItem vào Mean
+            if (meanItems != null && meanItems.Any())
+            {
+                foreach (var meanItem in meanItems)
+                {
+                    meanItem.MeanId = newMean.Id; // Gán MeanId của MeanItem
+                    newMean.Meanitems.Add(meanItem);
+                    newMean.TotalPrice += meanItem.TotalPrice;
+                }
+            }
+            // Thêm Order mới vào cơ sở dữ liệu
+            _context.Orders.Add(newOrder);
+
+            var table = _context.Tables.FirstOrDefault(t => t.Id == tableId);
+
+            if (table != null)
+            {
+                // Thay đổi trạng thái của bàn (ví dụ: Đã đặt hàng)
+                table.Status = "Đang đặt";
+
+                // Cập nhật thông tin bàn vào cơ sở dữ liệu
+                _context.Tables.Update(table);
+            }
+
+            // Lưu thay đổi vào cơ sở dữ liệu
+            _context.SaveChanges();
+
+            return newOrder;
+        }
+
+
     }
 }

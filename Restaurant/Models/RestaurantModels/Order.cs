@@ -1,6 +1,5 @@
 ﻿using Restaurant.Models.Users;
-using System;
-using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Restaurant.Models.RestaurantModels;
 
@@ -10,7 +9,9 @@ public class Order
 
     public Guid? CashierId { get; set; }
 
-    public int TableId { get; set; }
+    public Guid? CustomerId { get; set; }
+
+    public int? TableId { get; set; }
 
     public DateTime OrderTime { get; set; }
 
@@ -20,9 +21,11 @@ public class Order
 
     public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
 
+    public Mean? Means { get; set; }
+    [JsonIgnore]
     public virtual User? Cashier { get; set; }
-
-    public virtual ICollection<Mean> Means { get; set; } = new List<Mean>();
+    [JsonIgnore]
+    public virtual User? Customer { get; set; }
 
     public virtual Table Table { get; set; } = null!;
 }

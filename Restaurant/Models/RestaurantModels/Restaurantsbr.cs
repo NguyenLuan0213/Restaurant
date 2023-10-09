@@ -13,6 +13,8 @@ public class Restaurantsbr
 
     public string? Description { get; set; }
 
+    public string? Image { get; set; }
+
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
     public virtual ICollection<Menu> Menus { get; set; } = new List<Menu>();

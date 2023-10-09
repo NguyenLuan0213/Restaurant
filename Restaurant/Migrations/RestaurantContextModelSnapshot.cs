@@ -251,18 +251,12 @@ namespace Restaurant.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<int?>("OrderId")
-                        .HasColumnType("int")
-                        .HasColumnName("order_id");
-
                     b.Property<decimal?>("TotalPrice")
                         .HasColumnType("decimal(65,30)")
                         .HasColumnName("totalPrice");
 
                     b.HasKey("Id")
                         .HasName("PRIMARY");
-
-                    b.HasIndex(new[] { "OrderId" }, "fk_mean_order_idx");
 
                     b.ToTable("mean", (string)null);
                 });
@@ -274,7 +268,7 @@ namespace Restaurant.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id");
 
-                    b.Property<int>("MeanId")
+                    b.Property<int?>("MeanId")
                         .HasColumnType("int")
                         .HasColumnName("mean_id");
 
@@ -386,6 +380,9 @@ namespace Restaurant.Migrations
 
                     MySqlPropertyBuilderExtensions.HasCharSet(b.Property<Guid?>("CashierId"), "ascii");
 
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("char(36)");
+
                     b.Property<DateTime>("OrderTime")
                         .HasColumnType("timestamp")
                         .HasColumnName("order_time");
@@ -395,7 +392,8 @@ namespace Restaurant.Migrations
                         .HasColumnType("enum('Chưa thanh toán','Đã thanh toán','Đã hủy')")
                         .HasColumnName("status");
 
-                    b.Property<int>("TableId")
+                    b.Property<int?>("TableId")
+                        .IsRequired()
                         .HasColumnType("int")
                         .HasColumnName("table_id");
 
@@ -405,6 +403,8 @@ namespace Restaurant.Migrations
 
                     b.HasKey("Id")
                         .HasName("PRIMARY");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex(new[] { "CashierId" }, "fk_order_cashier_idx");
 
@@ -474,6 +474,11 @@ namespace Restaurant.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
+                    b.Property<string>("Image")
+                        .HasMaxLength(255)
+                        .HasColumnType("text")
+                        .HasColumnName("image");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -519,17 +524,12 @@ namespace Restaurant.Migrations
                         .HasColumnType("int")
                         .HasColumnName("table_number");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("char(36)");
-
                     b.HasKey("Id")
                         .HasName("PRIMARY");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "IdWaiter" }, "fk_idwaiterx");
 
                     b.HasIndex(new[] { "RestaurantId" }, "fk_restaurant_idx");
-
-                    b.HasIndex(new[] { "IdWaiter" }, "fk_restaurant_waiter_idx");
 
                     b.ToTable("tables", (string)null);
 
@@ -550,9 +550,6 @@ namespace Restaurant.Migrations
 
                     b.Property<DateOnly?>("BrithDay")
                         .HasColumnType("date");
-
-                    b.Property<int?>("Code")
-                        .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -732,8 +729,10 @@ namespace Restaurant.Migrations
             modelBuilder.Entity("Restaurant.Models.RestaurantModels.Mean", b =>
                 {
                     b.HasOne("Restaurant.Models.RestaurantModels.Order", "Order")
-                        .WithMany("Means")
-                        .HasForeignKey("OrderId")
+                        .WithOne("Means")
+                        .HasForeignKey("Restaurant.Models.RestaurantModels.Mean", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_mean_order");
 
                     b.Navigation("Order");
@@ -744,8 +743,6 @@ namespace Restaurant.Migrations
                     b.HasOne("Restaurant.Models.RestaurantModels.Mean", "Mean")
                         .WithMany("Meanitems")
                         .HasForeignKey("MeanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
                         .HasConstraintName("fk_meanItem_mean");
 
                     b.HasOne("Restaurant.Models.RestaurantModels.Menuitem", "MenuItem")
@@ -785,9 +782,15 @@ namespace Restaurant.Migrations
             modelBuilder.Entity("Restaurant.Models.RestaurantModels.Order", b =>
                 {
                     b.HasOne("Restaurant.Models.Users.User", "Cashier")
-                        .WithMany("Orders")
+                        .WithMany("CashierOrders")
                         .HasForeignKey("CashierId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_order_cashier");
+
+                    b.HasOne("Restaurant.Models.Users.User", "Customer")
+                        .WithMany("CustomerOrders")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Restaurant.Models.RestaurantModels.Table", "Table")
                         .WithMany("Orders")
@@ -796,6 +799,8 @@ namespace Restaurant.Migrations
                         .HasConstraintName("fk_order_tables");
 
                     b.Navigation("Cashier");
+
+                    b.Navigation("Customer");
 
                     b.Navigation("Table");
                 });
@@ -813,17 +818,19 @@ namespace Restaurant.Migrations
 
             modelBuilder.Entity("Restaurant.Models.RestaurantModels.Table", b =>
                 {
+                    b.HasOne("Restaurant.Models.Users.User", "Waiter")
+                        .WithMany("Tables")
+                        .HasForeignKey("IdWaiter");
+
                     b.HasOne("Restaurant.Models.RestaurantModels.Restaurantsbr", "Restaurant")
                         .WithMany("Tables")
                         .HasForeignKey("RestaurantId")
                         .IsRequired()
                         .HasConstraintName("fk_restaurant");
 
-                    b.HasOne("Restaurant.Models.Users.User", null)
-                        .WithMany("Tables")
-                        .HasForeignKey("UserId");
-
                     b.Navigation("Restaurant");
+
+                    b.Navigation("Waiter");
                 });
 
             modelBuilder.Entity("Restaurant.Models.Identity.Role", b =>
@@ -880,13 +887,15 @@ namespace Restaurant.Migrations
                 {
                     b.Navigation("Bills");
 
+                    b.Navigation("CashierOrders");
+
                     b.Navigation("Claims");
 
                     b.Navigation("Comments");
 
-                    b.Navigation("Logins");
+                    b.Navigation("CustomerOrders");
 
-                    b.Navigation("Orders");
+                    b.Navigation("Logins");
 
                     b.Navigation("Tables");
 

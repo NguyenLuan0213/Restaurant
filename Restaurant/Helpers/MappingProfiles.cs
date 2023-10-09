@@ -33,6 +33,9 @@ namespace Restaurant_BE.Helper
             CreateMap<Order, OrderDTO>();
             CreateMap<OrderDTO, Order>();
 
+            CreateMap<Order, OrderUpdateDTO>();
+            CreateMap<OrderUpdateDTO, Order>();
+
             CreateMap<Comment, CommentDTO>();
             CreateMap<CommentDTO, Comment>();
 

@@ -1,24 +1,20 @@
-﻿using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
-using dotenv.net;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using NETCore.MailKit.Core;
 using Restaurant.Converters;
 using Restaurant.Data;
-using Restaurant.Models;
-using Restaurant.Models.Identity;
 using Restaurant.Models.Users;
 using Restaurant.Repository;
 using Restaurant.Repository.Interfaces;
+using Restaurant.Service;
+using Restaurant.Service.Interface;
+using Restaurant.Threading;
 using Stripe;
 using System.Text;
-using UserEmail.Management.Service.Models;
 using Role = Restaurant.Models.Identity.Role;
 
 namespace Restaurant
@@ -29,11 +25,11 @@ namespace Restaurant
         {
             Configuration = configuration;
         }
+
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddScoped<IRestaurantsbrRepository, RestaurantsbrRepository>();
@@ -46,6 +42,8 @@ namespace Restaurant
             services.AddScoped<ICommentRepository, CommentRepository>();
             services.AddScoped<IMeanRepository, MeanRepository>();
             services.AddScoped<IMeanItemRepository, MeanItemRepository>();
+            //services.AddScoped<IOrderService, OrderService>();
+
             //services.AddScoped<IUsersRepository, UsersRepository>();
             services.AddSingleton<ISystemClock, SystemClock>();
             services.AddIdentity<User, Role>()
@@ -72,7 +70,6 @@ namespace Restaurant
             //    // User settings
             //    options.User.RequireUniqueEmail = true;
             //});
-
 
             services.AddCors(options =>
             {
@@ -121,7 +118,6 @@ namespace Restaurant
                 {
                     options.UseMySql(Configuration.GetConnectionString("RestaurantDB"),
                         Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.31-mysql"));
-
                 });
 
             services.AddSwaggerGen(option =>
@@ -152,14 +148,23 @@ namespace Restaurant
                     });
             });
 
-            var cloudinaryConfig = Configuration.GetSection("Cloudinary").Get<CloudinarySettings>();
-            var account = new CloudinaryDotNet.Account(cloudinaryConfig.CloudName, cloudinaryConfig.ApiKey, cloudinaryConfig.ApiSecret);
-            var cloudinary = new Cloudinary(account);
+            ////Threading
+            //var timerInterval = TimeSpan.FromMinutes(1);
+
+            //// Đăng ký OrderStatusUpdater với DI container với phạm vi Scoped
+            //services.AddScoped<OrderStatusUpdater>(sp =>
+            //{
+            //    var timerInterval = TimeSpan.FromMinutes(1); // Cung cấp giá trị timerInterval ở đây
+            //    var orderService = sp.GetRequiredService<IOrderService>();
+            //    return new OrderStatusUpdater(timerInterval, orderService);
+            //});
+
+
 
             //Sripe
             services.AddDistributedMemoryCache();
             StripeConfiguration.ApiKey = Configuration["Stripe:SecretKey"];
-            
+
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddSession(options =>
             {
@@ -169,7 +174,7 @@ namespace Restaurant
             });
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -177,7 +182,6 @@ namespace Restaurant
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Restaurant v1"));
             }
-            
 
             app.UseHttpsRedirection();
 
@@ -197,6 +201,9 @@ namespace Restaurant
             {
                 endpoints.MapControllers();
             });
+
+            //var orderStatusUpdater = app.ApplicationServices.GetRequiredService<OrderStatusUpdater>();
+            //orderStatusUpdater.Start();
         }
     }
 }

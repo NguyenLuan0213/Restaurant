@@ -51,6 +51,17 @@ public class RestaurantContext : IdentityDbContext<User, Role, Guid, UserClaim, 
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<Order>()
+        .HasOne(o => o.Customer)
+        .WithMany(u => u.CustomerOrders)
+        .HasForeignKey(o => o.CustomerId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Order>()
+            .HasOne(o => o.Cashier)
+            .WithMany(u => u.CashierOrders)
+            .HasForeignKey(o => o.CashierId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<User>(b =>
         {
@@ -85,7 +96,7 @@ public class RestaurantContext : IdentityDbContext<User, Role, Guid, UserClaim, 
         modelBuilder.Entity<Role>(b =>
         {
             b.HasKey("Id");
-            b. ToTable("roles");
+            b.ToTable("roles");
             // Each Role can have many entries in the UserRole join table
             b.HasMany(e => e.UserRoles)
                 .WithOne(e => e.Roles)
@@ -196,18 +207,20 @@ public class RestaurantContext : IdentityDbContext<User, Role, Guid, UserClaim, 
 
             entity.ToTable("mean");
 
-            entity.HasIndex(e => e.OrderId, "fk_mean_order_idx");
+            //entity.HasIndex(e => e.OrderId, "fk_mean_order_idx");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Description)
                 .HasColumnType("text")
                 .HasColumnName("description");
-            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            //entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.TotalPrice).HasColumnName("totalPrice");
 
-            entity.HasOne(d => d.Order).WithMany(p => p.Means)
-                .HasForeignKey(d => d.OrderId)
-                .HasConstraintName("fk_mean_order");
+            //modelBuilder.Entity<Mean>()
+            //    .HasOne(o => o.Order)
+            //    .WithOne()
+            //    .HasForeignKey<Mean>(m => m.Id)
+            //    .HasConstraintName("fk_mean_order");
         });
 
         modelBuilder.Entity<Meanitem>(entity =>
@@ -226,7 +239,8 @@ public class RestaurantContext : IdentityDbContext<User, Role, Guid, UserClaim, 
             entity.Property(e => e.Quantity).HasColumnName("quantity");
             entity.Property(e => e.TotalPrice).HasColumnName("totalPrice");
 
-            entity.HasOne(d => d.Mean).WithMany(p => p.Meanitems)
+            entity.HasOne(d => d.Mean)
+                .WithMany(p => p.Meanitems)
                 .HasForeignKey(d => d.MeanId)
                 .HasConstraintName("fk_meanItem_mean");
 
@@ -308,6 +322,12 @@ public class RestaurantContext : IdentityDbContext<User, Role, Guid, UserClaim, 
                 .HasColumnName("cashier_id")
                 .UseCollation("ascii_general_ci")
                 .HasCharSet("ascii");
+
+            entity.Property(e => e.CustomerId)
+                .HasColumnName("customer_id")
+                .UseCollation("ascii_general_ci")
+                .HasCharSet("ascii");
+
             entity.Property(e => e.OrderTime)
                 .HasColumnType("timestamp")
                 .HasColumnName("order_time");
@@ -317,7 +337,7 @@ public class RestaurantContext : IdentityDbContext<User, Role, Guid, UserClaim, 
             entity.Property(e => e.TableId).HasColumnName("table_id");
             entity.Property(e => e.TotalPrice).HasColumnName("totalPrice");
 
-            entity.HasOne(d => d.Cashier).WithMany(p => p.Orders)
+            entity.HasOne(d => d.Cashier).WithMany(p => p.CashierOrders)
                 .HasForeignKey(d => d.CashierId)
                 .HasConstraintName("fk_order_cashier");
 
@@ -325,6 +345,12 @@ public class RestaurantContext : IdentityDbContext<User, Role, Guid, UserClaim, 
                 .HasForeignKey(d => d.TableId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_order_tables");
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Means)
+                .WithOne(o => o.Order)
+                .HasForeignKey<Mean>(m => m.Id)
+                .HasConstraintName("fk_mean_order");
         });
 
         modelBuilder.Entity<Promotion>(entity =>
@@ -376,6 +402,10 @@ public class RestaurantContext : IdentityDbContext<User, Role, Guid, UserClaim, 
             entity.Property(e => e.Description)
                 .HasColumnType("text")
                 .HasColumnName("description");
+            entity.Property(e => e.Image)
+                .HasColumnType("text")
+                .HasMaxLength (255)
+                .HasColumnName("image");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
@@ -411,6 +441,6 @@ public class RestaurantContext : IdentityDbContext<User, Role, Guid, UserClaim, 
                 .HasConstraintName("fk_restaurant");
         });
 
-        
+
     }
 }

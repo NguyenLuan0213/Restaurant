@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
 
-        public int MeanId { get; set; }
+        public int? MeanId { get; set; }
 
         public int MenuItemId { get; set; }
 

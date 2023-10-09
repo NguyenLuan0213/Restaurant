@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Restaurant.Models.RestaurantModels;
 
@@ -21,6 +22,7 @@ public class Table
 
     [ForeignKey("IdWaiter")] // Chỉ định mối quan hệ khóa ngoại với IdWaiter
     public virtual User Waiter { get; set; } // Thêm thuộc tính để đại diện cho Waiter
+    [JsonIgnore]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     public virtual Restaurantsbr Restaurant { get; set; } = null!;

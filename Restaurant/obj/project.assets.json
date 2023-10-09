@@ -2552,6 +2552,15 @@
           }
         }
       },
+      "runtime.any.System.Threading.Timer/4.3.0": {
+        "type": "package",
+        "compile": {
+          "ref/netstandard/_._": {}
+        },
+        "runtime": {
+          "lib/netstandard1.3/System.Threading.Timer.dll": {}
+        }
+      },
       "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {
         "type": "package",
         "runtimeTargets": {
@@ -8083,6 +8092,32 @@
         "pomelo.entityframeworkcore.mysql.nuspec"
       ]
     },
+    "runtime.any.System.Threading.Timer/4.3.0": {
+      "sha512": "w4ehZJ+AwXYmGwYu+rMvym6RvMaRiUEQR1u6dwcyuKHxz8Heu/mO9AG1MquEgTyucnhv3M43X0iKpDOoN17C0w==",
+      "type": "package",
+      "path": "runtime.any.system.threading.timer/4.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "ThirdPartyNotices.txt",
+        "dotnet_library_license.txt",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net45/_._",
+        "lib/netcore50/System.Threading.Timer.dll",
+        "lib/netstandard1.3/System.Threading.Timer.dll",
+        "lib/win8/_._",
+        "lib/wpa81/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "lib/xamarintvos10/_._",
+        "lib/xamarinwatchos10/_._",
+        "ref/netstandard/_._",
+        "runtime.any.system.threading.timer.4.3.0.nupkg.sha512",
+        "runtime.any.system.threading.timer.nuspec",
+        "runtimes/aot/lib/netcore50/_._"
+      ]
+    },
     "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {
       "sha512": "7VSGO0URRKoMEAq0Sc9cRz8mb6zbyx/BZDEWhgPdzzpmFhkam3fJ1DAGWFXBI4nGlma+uPKpfuMQP5LXRnOH5g==",
       "type": "package",
@@ -12269,8 +12304,10 @@
       "Swashbuckle.AspNetCore >= 6.5.0",
       "Swashbuckle.AspNetCore.Filters >= 7.0.11",
       "System.IdentityModel.Tokens.Jwt >= 7.0.0",
+      "System.Threading.Timer >= 4.3.0",
       "UserEmail.Management.Service >= 1.0.0",
-      "dotenv.net >= 3.1.2"
+      "dotenv.net >= 3.1.2",
+      "runtime.any.System.Threading.Timer >= 4.3.0"
     ]
   },
   "packageFolders": {
@@ -12414,9 +12451,17 @@
             "target": "Package",
             "version": "[7.0.0, )"
           },
+          "System.Threading.Timer": {
+            "target": "Package",
+            "version": "[4.3.0, )"
+          },
           "dotenv.net": {
             "target": "Package",
             "version": "[3.1.2, )"
+          },
+          "runtime.any.System.Threading.Timer": {
+            "target": "Package",
+            "version": "[4.3.0, )"
           }
         },
         "imports": [

@@ -1,4 +1,5 @@
 ﻿using Restaurant.Models.RestaurantModels;
+using Restaurant.Models.Users;
 
 namespace Restaurant.Repository
 {
@@ -12,6 +13,7 @@ namespace Restaurant.Repository
         ICollection<Order> GetOrdersByOrderDate(DateTime OrderDate);
         ICollection<Order> GetOrdersByOrderStatus(string Status);
         ICollection<Order> GetOrdersByTableId(int tableId);
+        Order CreateNewOrder(Guid? cashierId, int? tableId, decimal totalPrice, string status, List<Meanitem> meanItems, DateTime orderTime, Guid? customerId, User customer);
         bool CreateOrder(Order order);
         bool UpdateOrder(Order order);
         bool DeleteOrder(int id);

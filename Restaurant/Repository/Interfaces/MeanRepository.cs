@@ -20,7 +20,7 @@ namespace Restaurant.Repository.Interfaces
 
                 if (existingMean != null)
                 {
-                    existingMean.OrderId = mean.OrderId;
+                    //existingMean.OrderId = mean.OrderId;
                     existingMean.Description = mean.Description;
 
                     // Lấy danh sách MeanItem có cùng meanId
@@ -107,10 +107,10 @@ namespace Restaurant.Repository.Interfaces
 
        
 
-        ICollection<Mean> IMeanRepository.GetMeanByOrderId(int orderId)
-        {
-            return _context.Means.Where(m => m.OrderId == orderId).ToList();
-        }
+        //ICollection<Mean> IMeanRepository.GetMeanByOrderId(int orderId)
+        //{
+        //    return _context.Means.Where(m => m.OrderId == orderId).ToList();
+        //}
 
     }
 }

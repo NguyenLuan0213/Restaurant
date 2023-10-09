@@ -21,7 +21,8 @@ public class User : IdentityUser<Guid>
 
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+    public ICollection<Order> CustomerOrders { get; set; } = new List<Order>();
+    public ICollection<Order> CashierOrders { get; set; } = new List<Order>();
 
     public virtual ICollection<Table> Tables { get; set; } = new List<Table>();
 
