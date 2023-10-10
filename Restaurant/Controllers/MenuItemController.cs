@@ -168,18 +168,9 @@ namespace Restaurant.Controllers
             {
                 return BadRequest("Không có tệp ảnh được gửi lên.");
             }
-            //// Tải ảnh lên Cloudinary
-            //var uploadParams = new ImageUploadParams
-            //{
-            //    File = new FileDescription(file.FileName, file.OpenReadStream()),
-            //    Transformation = new Transformation().Crop("fill").Width(400).Height(400),
-            //    // Cấu hình các biến đổi hoặc options khác nếu cần
-            //};
 
-            //var uploadResult = _cloudinary.Upload(uploadParams);
 
             //// Lấy URL công khai của ảnh trên Cloudinary
-            //var imageUrl = uploadResult.SecureUri.AbsoluteUri;
             var menuItem = _menuItemRepository.GetMenuItemById(id);
 
             menuItem.Id = menuItemDTO.Id;

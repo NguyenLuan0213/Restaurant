@@ -6,6 +6,11 @@ using System.Xml.Linq;
 using Restaurant.Repository;
 using Restaurant.Models.RestaurantModels;
 using Microsoft.AspNetCore.Authorization;
+using Restaurant.Repository.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Restaurant.Models.Users;
+using Restaurant.DTO;
+using Restaurant.Data;
 
 namespace Restaurant.Controllers
 {
@@ -15,10 +20,12 @@ namespace Restaurant.Controllers
     public class CommentsController : ControllerBase
     {
         private readonly ICommentRepository _commentRepository;
+        private readonly RestaurantContext _context;
         private readonly IMapper _mapper;
 
-        public CommentsController(ICommentRepository commentRepository, IMapper mapper)
+        public CommentsController(ICommentRepository commentRepository, IMapper mapper,RestaurantContext context)
         {
+            _context = context;
             _commentRepository = commentRepository;
             _mapper = mapper;
         }
@@ -26,16 +33,36 @@ namespace Restaurant.Controllers
 
         // GET: api/Comments
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Comment>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<CommentForCustomerDTO>))]
         public IActionResult GetComments()
         {
-            var comments = _mapper.Map<List<CommentDTO>>(_commentRepository.GetComments());
+            var comments = _commentRepository.GetComments(); // Lấy danh sách bình luận
+
+            // Tạo danh sách DTO chứa thông tin bình luận cùng với thông tin người dùng
+            var commentsWithUserData = comments.Select(comment =>
+            {
+                var commentDTO = _mapper.Map<CommentForCustomerDTO>(comment);
+
+                // Lấy thông tin người dùng dựa trên customerId và gán vào commentDTO
+                var user = _context.Users.FirstOrDefault(u => u.Id == comment.CustomerId);
+                if (user != null)
+                {
+                    commentDTO.CustomerName = user.Fullname;
+                    commentDTO.CustomerImage = user.Image;
+                }
+
+                return commentDTO;
+            }).ToList();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            return Ok(comments);
+
+            return Ok(commentsWithUserData);
         }
+
+
 
         //Get: api/Comments/id
         [HttpGet("{id}")]

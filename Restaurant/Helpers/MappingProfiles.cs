@@ -39,6 +39,9 @@ namespace Restaurant_BE.Helper
             CreateMap<Comment, CommentDTO>();
             CreateMap<CommentDTO, Comment>();
 
+            CreateMap<CommentForCustomerDTO, Comment>();
+            CreateMap<Comment, CommentForCustomerDTO>();
+
             CreateMap<Mean, MeanDTO>();
             CreateMap<MeanDTO, Mean>();
 

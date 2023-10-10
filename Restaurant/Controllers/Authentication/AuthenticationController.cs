@@ -1,16 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.Models.SignUp;
+using Microsoft.IdentityModel.Tokens;
 using Restaurant.Models;
 using Restaurant.Models.Login;
+using Restaurant.Models.SignUp;
+using Restaurant.Models.Users;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using NuGet.Protocol.Core.Types;
-using Restaurant.Models.Users;
-using Restaurant.Models.Identity;
 
 namespace Restaurant.Controllers.Authentication
 {
@@ -18,15 +17,22 @@ namespace Restaurant.Controllers.Authentication
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
+        private readonly Cloudinary _cloudinary;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        private readonly RoleManager<Role> _roleManager;
+        private readonly RoleManager<Models.Identity.Role> _roleManager;
         private readonly IConfiguration _configuration;
 
+
         public AuthenticationController(UserManager<User> userManager,
-            RoleManager<Role> roleManager, SignInManager<User> signInManager,
+            RoleManager<Models.Identity.Role> roleManager, SignInManager<User> signInManager,
             IConfiguration configuration)
         {
+            var cloudinaryCredentials = new CloudinaryDotNet.Account(
+            "dkba7robk",
+            "325815158184357",
+            "TxTGacbxcxoBBarPbpPwB4XCuc0");
+            _cloudinary = new Cloudinary(cloudinaryCredentials);
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
@@ -34,18 +40,51 @@ namespace Restaurant.Controllers.Authentication
         }
 
         [HttpPost("registry")]
-        public async Task<IActionResult> Register([FromBody] RegisterUser registerUser)
+        public async Task<IActionResult> Register([FromForm] RegisterUser registerUser, IFormFile file )
         {
-
-            //Check User
+            // Check if the user with the same email already exists
             var userExist = await _userManager.FindByEmailAsync(registerUser.Email);
             if (userExist != null)
             {
                 return StatusCode(StatusCodes.Status403Forbidden,
-                    new Response { Status = "Error", Message = "User already exists!" });
+                    new Response { Status = "Error", Message = "User with this email already exists!" });
             }
 
-            //Create User in database
+            // Check if a valid image file is provided
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Không có tệp ảnh được gửi lên.");
+            }
+
+            var image = "";
+            if (file != null && file.Length > 0)
+            {
+                // Upload the image to Cloudinary or perform other image processing as needed
+                var uploadParams = new ImageUploadParams
+                {
+                    File = new FileDescription(file.FileName, file.OpenReadStream()),
+                    Transformation = new Transformation().Crop("fill").Width(400).Height(400),
+                    // Configure other transformations or options as needed
+                };
+
+                var uploadResult = _cloudinary.Upload(uploadParams);
+
+                // Get the public URL of the uploaded image from Cloudinary
+                var imageUrl = uploadResult.SecureUri?.AbsoluteUri;
+
+                if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    image = imageUrl;
+                }
+                else
+                {
+                    // Handle the case where the image upload failed
+                    return StatusCode(StatusCodes.Status500InternalServerError,
+                        new Response { Status = "Error", Message = "Failed to upload image." });
+                }
+            }
+
+            // Create the user in the database
             var user = new User()
             {
                 Email = registerUser.Email,
@@ -53,28 +92,34 @@ namespace Restaurant.Controllers.Authentication
                 PhoneNumber = registerUser.PhoneNumber,
                 Address = registerUser.Address,
                 Fullname = registerUser.Fullname,
-                BrithDay = registerUser.BirthDay,
+                BrithDay = DateOnly.Parse(registerUser.BirthDay),
                 Gender = registerUser.Gender,
+                Image = image,
                 SecurityStamp = Guid.NewGuid().ToString()
             };
+
+            // Check if the specified role exists
             if (await _roleManager.RoleExistsAsync(registerUser.Roles))
             {
                 var result = await _userManager.CreateAsync(user, registerUser.Password);
 
-                if (!result.Succeeded)
+                if (result.Succeeded)
                 {
-                    var errors = result.Errors;
-                    return StatusCode(StatusCodes.Status500InternalServerError,
-                        new Response { Status = "Error", Message = "User Failed to Create" });
-                }
+                    // Add the user to the specified role
+                    await _userManager.AddToRoleAsync(user, registerUser.Roles);
 
-                await _userManager.AddToRoleAsync(user, registerUser.Roles);
-                {
                     return Ok(new Response
                     {
                         Status = "Success",
                         Message = "User Created Successfully"
                     });
+                }
+                else
+                {
+                    // Handle the case where user creation failed
+                    var errors = result.Errors;
+                    return StatusCode(StatusCodes.Status500InternalServerError,
+                        new Response { Status = "Error", Message = "User Failed to Create" });
                 }
             }
             else
@@ -83,6 +128,7 @@ namespace Restaurant.Controllers.Authentication
                     new Response { Status = "Error", Message = "User Creation Failed" });
             }
         }
+
 
         //    [HttpGet("email")]
         //    public async Task<IActionResult> ConfirmEmail(string token, string email)
@@ -100,8 +146,6 @@ namespace Restaurant.Controllers.Authentication
         //        return StatusCode(StatusCodes.Status500InternalServerError,
         //                   new Response { Status = "Error", Message = "This User Doesnot exist!" });
         //    }
-
-
 
         [HttpPost]
         [Route("login")]
@@ -153,8 +197,6 @@ namespace Restaurant.Controllers.Authentication
             return BadRequest(new Response { Status = "Error", Message = "Invalid username or password" });
         }
 
-
-
         private JwtSecurityToken GetToken(List<Claim> authClaims)
         {
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
@@ -178,7 +220,7 @@ namespace Restaurant.Controllers.Authentication
                 return StatusCode(StatusCodes.Status500InternalServerError,
                                        new Response { Status = "Error", Message = "Role already exists!" });
             }
-            var roles = new Role()
+            var roles = new Models.Identity.Role()
             {
                 Name = role,
                 NormalizedName = role.ToUpper(),
@@ -192,7 +234,6 @@ namespace Restaurant.Controllers.Authentication
             }
             return Ok(new Response { Status = "Success", Message = "Role Created Successfully" });
         }
-
 
         [HttpPost("logout")]
         public IActionResult Logout()
@@ -222,6 +263,7 @@ namespace Restaurant.Controllers.Authentication
                     Address = user?.Address,
                     Gender = user?.Gender,
                     BirthDay = user?.BrithDay,
+                    Image = user?.Image,
                     Roles = userRoles // Danh sách các roles của người dùng
                 };
 
@@ -229,6 +271,5 @@ namespace Restaurant.Controllers.Authentication
             }
             return NotFound(); // Hoặc Unauthorized nếu bạn muốn ẩn thông tin về sự không tồn tại của người dùng
         }
-
     }
 }
