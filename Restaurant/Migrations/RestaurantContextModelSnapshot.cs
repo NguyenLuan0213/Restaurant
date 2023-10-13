@@ -381,7 +381,11 @@ namespace Restaurant.Migrations
                     MySqlPropertyBuilderExtensions.HasCharSet(b.Property<Guid?>("CashierId"), "ascii");
 
                     b.Property<Guid?>("CustomerId")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("char(36)")
+                        .HasColumnName("customer_id")
+                        .UseCollation("ascii_general_ci");
+
+                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<Guid?>("CustomerId"), "ascii");
 
                     b.Property<DateTime>("OrderTime")
                         .HasColumnType("timestamp")

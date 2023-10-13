@@ -149,7 +149,7 @@ namespace Restaurant.Controllers
         }
 
         // PUT: api/Tables/update
-        [HttpPut("update")]
+        [HttpPut("update/{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
@@ -195,9 +195,6 @@ namespace Restaurant.Controllers
 
         // DELETE api/tables/{id}
         [HttpDelete("{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult DeleteTable(int id)
         {
             if (!_tablesRepository.TableExists(id))
