@@ -79,6 +79,7 @@ namespace Restaurant.Repository.Interfaces
                     resultPromotion.StartDate = promotion.StartDate;
                     resultPromotion.EndDate = promotion.EndDate;
                     resultPromotion.Discount = promotion.Discount;
+                    resultPromotion.RestaurantId = promotion.RestaurantId;
 
                     _context.SaveChanges(); // Lưu thay đổi vào cơ sở dữ liệu
 

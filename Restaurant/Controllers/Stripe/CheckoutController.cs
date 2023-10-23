@@ -1,15 +1,13 @@
-﻿using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Mvc;
-using Restaurant.Models;
-using Restaurant.Models.RestaurantModels;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Restaurant.Dto;
+using Stripe;
 using Stripe.Checkout;
 
 namespace Restaurant.Controllers.Stripe;
 
 [ApiController]
 [Route("api/[controller]")]
-//[ApiExplorerSettings(IgnoreApi = true)]
 public class CheckoutController : ControllerBase
 {
     private readonly IConfiguration _configuration;
@@ -21,86 +19,102 @@ public class CheckoutController : ControllerBase
         _configuration = configuration;
     }
 
-    [HttpPost]
-    public async Task<ActionResult> CheckoutOrder([FromBody] Order order, [FromServices] IServiceProvider sp)
+    [HttpPost("create-checkout-session")]
+    public IActionResult CreateSession([FromBody] OrderDTO orderDTO)
     {
-        var referer = Request.Headers.Referer;
-        s_wasmClientURL = referer[0];
-
-        // Build the URL to which the customer will be redirected after paying.
-        var server = sp.GetRequiredService<IServer>();
-
-        var serverAddressesFeature = server.Features.Get<IServerAddressesFeature>();
-
-        string? thisApiUrl = null;
-
-        if (serverAddressesFeature is not null)
-        {
-            thisApiUrl = serverAddressesFeature.Addresses.FirstOrDefault();
-        }
-
-        if (thisApiUrl is not null)
-        {
-            var sessionId = await CheckOut(order, thisApiUrl);
-            var pubKey = _configuration["Stripe:PubKey"];
-
-            var checkoutOrderResponse = new CheckoutOrderResponse()
-            {
-                SessionId = sessionId,
-                PubKey = pubKey
-            };
-
-            return Ok(checkoutOrderResponse);
-        }
-        else
-        {
-            return StatusCode(500);
-        }
-    }
-
-    [NonAction]
-    public async Task<string> CheckOut(Order order, string thisApiUrl)
-    {
-        // Create a payment flow from the items in the cart.
-        // Gets sent to Stripe API.
+        decimal amount = orderDTO.TotalPrice ?? 0.0m;
+        try
+        { 
         var options = new SessionCreateOptions
         {
-            // Stripe calls the URLs below when certain checkout events happen such as success and failure.
-            SuccessUrl = $"{thisApiUrl}/checkout/success?sessionId=" + "{CHECKOUT_SESSION_ID}", // Customer paid.
-            CancelUrl = s_wasmClientURL + "failed",  // Checkout cancelled.
-            PaymentMethodTypes = new List<string> // Only card available in test mode?
+            PaymentMethodTypes = new List<string>
             {
-                "card"
+                "card",
             },
             LineItems = new List<SessionLineItemOptions>
             {
-                new()
+                new SessionLineItemOptions
                 {
                     PriceData = new SessionLineItemPriceDataOptions
                     {
-                        UnitAmount = (long?)(order.TotalPrice * 100) ?? 0, // Price is in USD cents.
-                        Currency = "USD",
+                        UnitAmount =(long?)amount,
+                        Currency = "VND",
                         ProductData = new SessionLineItemPriceDataProductDataOptions
                         {
-                            Name = order.Status
-                            
+                            Name = orderDTO.Id.ToString(),
                         },
                     },
                     Quantity = 1,
                 },
             },
-            Mode = "payment" // One-time payment. Stripe supports recurring 'subscription' payments.
-        };
-
+            Mode = "payment",
+            SuccessUrl = "https://example.com/success",
+            CancelUrl = "https://example.com/cancel",
+        };  
         var service = new SessionService();
-        var session = await service.CreateAsync(options);
+        Session session = service.Create(options);
+        return new JsonResult(
+                new
+                {
+                    sessionId = session.Id,
+                    url = session.Url,
 
-        return session.Id;
+                });
+        }
+        catch (StripeException e)
+        {
+            return new JsonResult(new { error = e.Message });
+        }
+
+    }
+
+    [HttpPost("checkout")]
+    public IActionResult CreatePaymentIntent([FromBody] OrderDTO orderDTO)
+    {
+        System.Diagnostics.Debug.WriteLine("nó có vào hàm thanh toán");
+
+        decimal amount = orderDTO.TotalPrice ?? 0.0m;
+        var productsPost = new List<object>();
+
+        try
+        {
+            StripeConfiguration.ApiKey = "sk_test_51Mm6CAJTSCX72rEN0osGovCVaSKimGjDCkJjqJmA4vxPFvOav5pfxsJwuaNsm2GQOObTWTsiyY5zPog6FIrVBSgf00zDD66h8d";
+
+            var options = new PaymentIntentCreateOptions
+            {
+                Amount = (long?)amount, // Convert to cents
+                Currency = "vnd",
+                PaymentMethodTypes = new List<string> { "card" },
+                Metadata = new Dictionary<string, string>
+                   {
+                       { "customer_name", orderDTO.Id.ToString() ?? "" },
+                       { "customer_phone", orderDTO.Id.ToString() ?? "" },
+                       { "customer_address", orderDTO.Id.ToString() ?? "" },
+                   },
+                PaymentMethodOptions = new PaymentIntentPaymentMethodOptionsOptions
+                {
+                    Card = new PaymentIntentPaymentMethodOptionsCardOptions
+                    {
+                        RequestThreeDSecure = "automatic"
+                    }
+                }
+            };
+
+            var service = new PaymentIntentService();
+            var intent = service.Create(options);
+
+            return new JsonResult(
+                new { 
+                    client_secret = intent.ClientSecret,
+                });
+        }
+        catch (StripeException e)
+        {
+            return new JsonResult(new { error = e.Message });
+        }
     }
 
     [HttpGet("success")]
-    // Automatic query parameter handling from ASP.NET.
-    // Example URL: https://localhost:7274/checkout/success?sessionId=si_123123123123
     public ActionResult CheckoutSuccess(string sessionId)
     {
         var sessionService = new SessionService();

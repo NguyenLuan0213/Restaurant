@@ -50,8 +50,7 @@ namespace Restaurant.Controllers
 
         //Get: api/Orders/id
         [HttpGet("{id}")]
-        [ProducesResponseType(200, Type = typeof(Order))]
-        [ProducesResponseType(400)]
+
         public IActionResult GetOrderId(int id)
         {
             if (!_ordersRepository.OrderExists(id))
@@ -139,49 +138,62 @@ namespace Restaurant.Controllers
             return Ok(orderDTOs);
         }
 
-        // POST: api/Orders
-        [HttpPost]
-        [ProducesResponseType(201, Type = typeof(OrderDTO))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        public IActionResult CreateOrder([FromBody] OrderDTO orderDTO)
+        [HttpPost("addOrder")]
+        public IActionResult CreateOrderWithMean([FromBody] OrderDTO orderDTO)
         {
             if (orderDTO == null)
             {
-                return BadRequest("Invalid data");
+                return BadRequest("Dữ liệu không hợp lệ");
             }
-            // Tạo một đối tượng Order từ orderDTO
-            var order = _mapper.Map<Order>(orderDTO);
 
-            // Lấy danh sách Mean của Order
-            //var means = _meanRepository.GetMeanByOrderId(order.Id);
-
-            // Tính tổng totalPrice từ các Mean
-            //decimal? orderTotalPrice = means.Sum(mean => mean.TotalPrice);
-
-            // Cập nhật totalPrice của Order
-            //order.TotalPrice = orderTotalPrice ?? 0;
-
-            _mapper.Map<Order>(orderDTO);
-
-            // Thực hiện thêm mới
-            if (!_ordersRepository.CreateOrder(order))
+            using (var transaction = _context.Database.BeginTransaction())
             {
-                return BadRequest("Unable to create order");
+                try
+                {
+                    // Tạo đối tượng Order từ DTO
+                    var order = new Order
+                    {
+                        TotalPrice = orderDTO.TotalPrice,
+                        CashierId = orderDTO.CashierId,
+                        CustomerId = orderDTO.CustomerId,
+                        OrderTime = orderDTO.OrderTime,
+                        Status = orderDTO.Status,
+                        TableId = orderDTO.TableId,
+                    };
+
+                    // Lưu Order vào cơ sở dữ liệu
+                    _context.Orders.Add(order);
+                    _context.SaveChanges();
+
+                    // Gán OrderId cho Mean
+                    var mean = new Mean
+                    {
+                        TotalPrice = orderDTO.TotalPrice,
+                        Id = order.Id, // Gán OrderId bằng Id của Order vừa được tạo
+                    };
+
+                    // Lưu Mean vào cơ sở dữ liệu
+                    _context.Means.Add(mean);
+                    _context.SaveChanges();
+
+                    // Hoàn thành giao dịch
+                    transaction.Commit();
+
+                    var createOrder = _context.Orders.Find(order.Id);
+                    return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, createOrder);
+                }
+                catch (Exception ex)
+                {
+                    // Giao dịch gặp lỗi, rollback
+                    transaction.Rollback();
+                    return BadRequest($"Lỗi: {ex.Message}");
+                }
             }
-
-            //Ánh xạ lại đối tượng thành DTO để trả về client
-            var createrderDTO = _mapper.Map<OrderDTO>(order);
-
-            //Trả về mã 201 - Created
-            return CreatedAtAction(nameof(GetOrderId), new { id = createrderDTO.Id }, createrderDTO);
         }
+
 
         // PUT: api/Orders/id
         [HttpPut("update/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult UpdateOrder(int id, [FromBody] OrderDTO orderDTO)
         {
             if (orderDTO == null)
@@ -205,14 +217,19 @@ namespace Restaurant.Controllers
             order.Status = orderDTO.Status;
             order.TableId = orderDTO.TableId;
             order.CashierId = orderDTO.CashierId;
+            order.CustomerId = orderDTO.CustomerId;
 
-            //var means = _meanRepository.GetMeanByOrderId(order.Id);
+            var means = _meanRepository.GetMeanById(order.Id);
 
-            // Tính tổng totalPrice của các Mean
-            //decimal? orderTotalPrice = means.Sum(mean => mean.TotalPrice);
+            //Tính tổng totalPrice của các Mean
+            decimal? orderTotalPrice = null;
 
-            // Gán giá trị totalPrice cho Order
-            //order.TotalPrice = orderTotalPrice;
+            if (means != null)
+            {
+                orderTotalPrice = means.TotalPrice;
+            }
+
+            order.TotalPrice = orderTotalPrice;
 
             _mapper.Map<Order>(orderDTO);
 
@@ -225,27 +242,48 @@ namespace Restaurant.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Orders/id
         [HttpDelete("delete/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult DeleteOrder(int id)
         {
-            //Kiểm tra xem order có tồn tại không
-            if (!_ordersRepository.OrderExists(id))
+            using (var transaction = _context.Database.BeginTransaction())
             {
-                return NotFound();
+                try
+                {
+                    // Kiểm tra xem đơn đặt hàng tồn tại
+                    var order = _context.Orders.Find(id);
+                    if (order == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Lấy danh sách đối tượng Mean liên kết với đơn đặt hàng
+                    var means = _context.Means.Where(m => m.Id == id).ToList();
+
+                    // Xóa tất cả các đối tượng Mean
+                    foreach (var mean in means)
+                    {
+                        _context.Means.Remove(mean);
+                    }
+
+                    // Thực hiện xóa đơn đặt hàng
+                    _context.Orders.Remove(order);
+
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+
+                    return NoContent();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    return BadRequest("Unable to delete order: " + ex.Message);
+                }
             }
-            //Thực hiện xóa
-            if (!_ordersRepository.DeleteOrder(id))
-            {
-                return BadRequest("Unable to delete order");
-            }
-            //Trả về mã 204 - NoContent
-            return NoContent();
         }
 
+
+        //Phần làm về fe
         // POST: api/orders/byall
         [HttpPost("byall")]
         public IActionResult CreateOrderByAll([FromBody] OrderDTO orderDTO)
@@ -554,5 +592,15 @@ namespace Restaurant.Controllers
                 return StatusCode(500, new { message = "Đã xảy ra lỗi trong quá trình xử lý yêu cầu" });
             }
         }
+
+        [HttpGet("cancelOrders")]
+        public IActionResult GetCancelOrderCount()
+        {
+            // Đếm số đơn hàng có Status là "Đã hủy"
+            int cancelOrderCount = _context.Orders.Count(order => order.Status == "Đã hủy");
+
+            return Ok(new { CancelOrderCount = cancelOrderCount });
+        }
+
     }
 }

@@ -82,8 +82,6 @@ namespace Restaurant.Controllers
 
         // POST: api/Promotion
         [HttpPost]
-        [ProducesResponseType(201, Type = typeof(PromotionsDTO))]
-        [ProducesResponseType(400)]
         public IActionResult CreatePromotion([FromBody] PromotionsDTO promotionDTO)
         {
             if(promotionDTO == null)
@@ -117,9 +115,6 @@ namespace Restaurant.Controllers
 
         // PUT: api/Promotion/update
         [HttpPut("update/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult UpdatePromotion(int id, [FromBody] PromotionsDTO promotionDTO)
         {
             if (promotionDTO == null || id != promotionDTO.Id )
@@ -138,7 +133,7 @@ namespace Restaurant.Controllers
                 StartDate = promotionDTO.StartDate,
                 EndDate = promotionDTO.EndDate,
                 Discount = promotionDTO.Discount,
-                RestaurantId = promotionDTO.RestaurantId
+                RestaurantId = promotionDTO.RestaurantId,
             };
             _mapper.Map<Promotion>(promotionDTO);
 
@@ -151,9 +146,6 @@ namespace Restaurant.Controllers
 
         // DELETE: api/Promotion/delete
         [HttpDelete("{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult DeletePromotion(int id)
         {
             if (!_promotionsRepository.PromotionExists(id))

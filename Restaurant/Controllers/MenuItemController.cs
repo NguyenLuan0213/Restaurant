@@ -88,9 +88,6 @@ namespace Restaurant.Controllers
 
         // GET: api/MenuItem/menu
         [HttpGet("menu/{id}")]
-        [ProducesResponseType(200, Type = typeof(Menuitem))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult GetMenuItemByMenu(int id)
         {
             var menuItem = _menuItemRepository.GetMenuItemByMenu(id);
@@ -105,9 +102,6 @@ namespace Restaurant.Controllers
 
         // POST: api/MenuItem
         [HttpPost("add")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult addMenuItem([FromForm] MenuItemDTO menuItemDTO,IFormFile file)
         {
             if (menuItemDTO == null)
@@ -144,16 +138,17 @@ namespace Restaurant.Controllers
             {
                 return BadRequest("Uanble to create menu");
             }
-            var createdMenuItemDTO = _mapper.Map<MenuItemDTO>(menuItem);
-            return CreatedAtAction(nameof(GetMenuItemId), new { id = createdMenuItemDTO.Id }, createdMenuItemDTO);
+            else
+            {
+                var createdMenuItemDTO = _mapper.Map<MenuItemDTO>(menuItem);
+                return CreatedAtAction(nameof(GetMenuItemId), new { id = createdMenuItemDTO.Id }, createdMenuItemDTO);
+            }
         }
 
         // PUT: api/MenuItem/id
         [HttpPut("update/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        public IActionResult UpdateMenuItem(int id, [FromForm] MenuItemDTO menuItemDTO, IFormFile file)
+
+        public IActionResult UpdateMenuItem(int id, [FromForm] MenuItemDTO menuItemDTO, IFormFile? file)
         {
             if (menuItemDTO == null || id != menuItemDTO.Id)
             {
@@ -164,22 +159,11 @@ namespace Restaurant.Controllers
             {
                 return NotFound();
             }
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("Không có tệp ảnh được gửi lên.");
-            }
-
-
-            //// Lấy URL công khai của ảnh trên Cloudinary
+            
             var menuItem = _menuItemRepository.GetMenuItemById(id);
 
-            menuItem.Id = menuItemDTO.Id;
-            menuItem.Name = menuItemDTO.Name;
-            menuItem.Description = menuItemDTO.Description;
-            menuItem.Price = menuItemDTO.Price;
-            menuItem.Image = menuItemDTO.Image;
-            // Kiểm tra xem có tệp hình ảnh mới không
-            if (file != null && file.Length > 0)
+            // Nếu có tệp ảnh được gửi lên và tệp đó có kích thước lớn hơn 0, thì tải ảnh lên
+            if (menuItemDTO.File != null && menuItemDTO.File.Length > 0)
             {
                 // Tải ảnh lên Cloudinary hoặc thực hiện xử lý ảnh khác tùy ý ở đây
                 var uploadParams = new ImageUploadParams
@@ -196,6 +180,15 @@ namespace Restaurant.Controllers
 
                 menuItem.Image = imageUrl;
             }
+            else
+            {
+                menuItem.Image = menuItemDTO.Image;
+            }
+
+            menuItem.Id = menuItemDTO.Id;
+            menuItem.Name = menuItemDTO.Name;
+            menuItem.Description = menuItemDTO.Description;
+            menuItem.Price = menuItemDTO.Price;
 
             _mapper.Map<Menuitem>(menuItemDTO);
 
@@ -208,9 +201,6 @@ namespace Restaurant.Controllers
 
         // DELETE: api/MenuItem/id
         [HttpDelete("delete/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult DeleteMenuItem(int id)
         {
             if (!_menuItemRepository.MenuItemExists(id))

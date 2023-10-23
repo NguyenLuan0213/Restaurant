@@ -32,8 +32,8 @@ namespace Restaurant.Repository.Interfaces
 
         public bool DeleteComment(int id)
         {
-            var commentToDelete = _context.Comments.Where(c => c.Id == id).FirstOrDefault();
-            if (commentToDelete != null)
+            var commentToDelete = _context.Comments.FirstOrDefault(c => c.Id == id);
+            if (commentToDelete == null)
             {
                 return false;
             }

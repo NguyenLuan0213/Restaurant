@@ -124,9 +124,7 @@ namespace Restaurant.Controllers
 
         //post: api/Comments
         [HttpPost]
-        [ProducesResponseType(201, Type = typeof(CommentDTO))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
+
         public IActionResult CreateComment([FromBody] CommentDTO commentDTO)
         {
             if (commentDTO == null)
@@ -150,17 +148,17 @@ namespace Restaurant.Controllers
             {
                 return BadRequest("Unable create data in comments");
             }
+            else
+            {
+                var CreatecommentDto = _mapper.Map<CommentDTO>(comments);
 
-            var CreatecommentDto = _mapper.Map<CommentDTO>(comments);
-
-            return CreatedAtAction(nameof(GetCommentId), new { id = CreatecommentDto.Id }, CreatecommentDto);
+                return CreatedAtAction(nameof(GetCommentId), new { id = CreatecommentDto.Id }, CreatecommentDto);
+            }
         }
 
         //put: api/Comments/id
         [HttpPut("update/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
+
         public IActionResult UpdateComment(int id, [FromBody] CommentDTO commentDTO)
         {
             if (commentDTO == null || id != commentDTO.Id)
@@ -194,9 +192,7 @@ namespace Restaurant.Controllers
 
         //delete: api/Comments/id
         [HttpDelete("delete/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
+
         public IActionResult DeleteComment(int id)
         {
             if (!_commentRepository.CommentExists(id))

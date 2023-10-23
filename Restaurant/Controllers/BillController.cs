@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Restaurant.Models.RestaurantModels;
 using Restaurant.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore;
+using Restaurant.Data;
 
 namespace Restaurant.Controllers
 {
@@ -19,13 +21,17 @@ namespace Restaurant.Controllers
         private readonly IOrdersRepository _ordersRepository;
         private readonly IPromotionsRepository _promotionsRepository;
         private readonly IMapper _mapper;
+        private readonly RestaurantContext _context;
 
-        public BillController(IBillRepository billRepository, IMapper mapper, IOrdersRepository ordersRepository, IPromotionsRepository promotionsRepository)
+        public BillController(IBillRepository billRepository, IMapper mapper, IOrdersRepository ordersRepository, IPromotionsRepository promotionsRepository
+            , RestaurantContext context)
+
         {
             _billRepository = billRepository;
             _mapper = mapper;
             _ordersRepository = ordersRepository;
             _promotionsRepository = promotionsRepository;
+            _context = context;
         }
 
         // GET: api/Bill
@@ -113,10 +119,7 @@ namespace Restaurant.Controllers
 
         // POST: api/Bill
         [HttpPost]
-        [Authorize(Roles = "ADMIN,CASHIER")]
-        [ProducesResponseType(201, Type = typeof(BillDTO))]
-        [ProducesResponseType(400)]
-        public IActionResult CreateBill([FromBody] BillDTO billDTO)
+        public IActionResult CreateBill([FromBody] BillDTO? billDTO)
         {
             if (billDTO == null)
             {
@@ -147,13 +150,15 @@ namespace Restaurant.Controllers
                 discountAmount = totalAmount;
             }
 
+            var customerOrder = order.CustomerId;
+
             var bill = new Bill()
             {
                 BillDate = billDTO.BillDate,
                 TotalAmount = totalAmount,
                 OrderId = billDTO.OrderId,
                 PromotionId = billDTO.PromotionId,
-                CustomerId = billDTO.CustomerId,
+                CustomerId = customerOrder,
                 DiscountAmount = discountAmount
             };
 
@@ -163,18 +168,16 @@ namespace Restaurant.Controllers
             {
                 return BadRequest("Unable to create bill");
             }
+            else
+            {
+                var createdBillDTO = _mapper.Map<BillDTO>(bill);
 
-            var createdBillDTO = _mapper.Map<BillDTO>(bill);
-
-            return CreatedAtAction(nameof(GetBillId), new { id = createdBillDTO.Id }, createdBillDTO);
+                return CreatedAtAction(nameof(GetBillId), new { id = createdBillDTO.Id }, createdBillDTO);
+            }
         }
         
         // PUT: api/Bill/update/{id}
         [HttpPut("update/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        [Authorize(Roles = "ADMIN,CASHIER")]
         public async Task<IActionResult> UpdateBill(int id, [FromBody] BillDTO billDTO)
         {
             if (billDTO == null)
@@ -225,7 +228,7 @@ namespace Restaurant.Controllers
             bill.BillDate = billDTO.BillDate;
             bill.OrderId = billDTO.OrderId;
             bill.PromotionId = billDTO.PromotionId;
-            bill.CustomerId = billDTO.CustomerId;
+            bill.CustomerId = order.CustomerId;
             
             
 
@@ -238,14 +241,8 @@ namespace Restaurant.Controllers
             return NoContent();
         }
 
-
-
         // DELETE: api/Bill/id
         [HttpDelete("delete/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        [Authorize(Roles = "ADMIN,CASHIER")]
         public IActionResult DeleteBill(int id)
         {
             if (!_billRepository.BillExists(id))
@@ -260,5 +257,185 @@ namespace Restaurant.Controllers
 
             return NoContent();
         }
+
+        //--Làm thống kê--
+        [HttpGet]
+        [Route("GetChartByDay/{year}/{month}/{day}")]
+        public async Task<ActionResult<object>> GetChartDataByDay(int year, int month, int day)
+        {
+            try
+            {
+                DateTime selectedDate = new DateTime(year, month, day);
+                DateTime startDate = selectedDate.AddDays(-3);
+                DateTime endDate = selectedDate.AddDays(4);
+
+                var data = await _context.Bills
+                    .Where(b => b.BillDate >= startDate.Date && b.BillDate < endDate.Date)
+                    .GroupBy(b => b.BillDate.Date)
+                    .OrderBy(g => g.Key)  // Sắp xếp theo ngày tăng dần
+                    .Select(g => new
+                    {
+                        Date = new { year = g.Key.Year, month = g.Key.Month, day = g.Key.Day },
+                        TotalDiscountAmount = g.Sum(b => b.DiscountAmount ?? 0)
+                    })
+                    .ToListAsync();
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
+        }
+
+
+        [HttpGet]
+        [Route("GetChartByMonth/{year}/{month}")]
+        public async Task<ActionResult<object>> GetChartDataByMonth(int year, int month)
+        {
+            try
+            {
+                DateTime selectedDate = new DateTime(year, month, 1);
+                DateTime startDate = selectedDate.AddMonths(-2);
+                DateTime endDate = selectedDate.AddMonths(3);
+
+                var data = await _context.Bills
+                    .Where(b => b.BillDate >= startDate && b.BillDate < endDate)
+                    .GroupBy(b => new { b.BillDate.Year, b.BillDate.Month })
+                    .OrderBy(g => g.Key.Year) // Sắp xếp theo năm tăng dần
+                    .ThenBy(g => g.Key.Month) // Sau đó sắp xếp theo tháng tăng dần
+                    .Select(g => new
+                    {
+                        Date = new { year = g.Key.Year, month = g.Key.Month },
+                        TotalDiscountAmount = g.Sum(b => b.DiscountAmount ?? 0)
+                    })
+                    .ToListAsync();
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
+        }
+
+        [HttpGet]
+        [Route("GetChartByQuarter/{year}")]
+        public async Task<ActionResult<object>> GetChartDataByQuarter(int year)
+        {
+            try
+            {
+                var data = await _context.Bills
+                    .Where(b => b.BillDate.Year == year)
+                    .GroupBy(b => new { b.BillDate.Year, Quarter = (b.BillDate.Month - 1) / 3 + 1 })
+                    .OrderBy(g => g.Key.Year) // Sắp xếp theo năm tăng dần
+                    .ThenBy(g => g.Key.Quarter) // Sau đó sắp xếp theo tháng tăng dần
+                    .Select(g => new
+                    {
+                        Date = new { year = g.Key.Year, quarter = g.Key.Quarter },
+                        TotalDiscountAmount = g.Sum(b => b.DiscountAmount ?? 0)
+                    })
+                    .ToListAsync();
+
+                // Gộp dữ liệu các tháng trong cùng một quý lại với nhau
+                var groupedData = data.GroupBy(d => new { d.Date.year, d.Date.quarter })
+                    .Select(group => new
+                    {
+                        Date = new { year = group.Key.year, quarter = group.Key.quarter },
+                        TotalDiscountAmount = group.Sum(d => d.TotalDiscountAmount)
+                    })
+                    .ToList();
+
+                return groupedData;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
+        }
+
+
+        [HttpGet]
+        [Route("GetChartByYear/{year}")]
+        public async Task<ActionResult<object>> GetChartDataByYear(int year)
+        {
+            try
+            {
+                DateTime startDate = new DateTime(year - 1, 1, 1);
+                DateTime endDate = new DateTime(year + 1, 1, 1);
+
+                var data = await _context.Bills
+                    .Where(b => b.BillDate >= startDate && b.BillDate < endDate)
+                    .GroupBy(b => b.BillDate.Year)
+                    .OrderBy(g => g.Key)
+                    .Select(g => new
+                    {
+                        Date = new { year = g.Key },
+                        TotalDiscountAmount = g.Sum(b => b.DiscountAmount ?? 0)
+                    })
+                    .ToListAsync();
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
+        }
+
+        [HttpGet]
+        [Route("getBillByDashboard")]
+        public async Task<ActionResult<object>> getBillByDashboard()
+        {
+            try
+            {
+                // Tính tổng tiền của DiscountAmount
+                var totalPrice = await _context.Bills.SumAsync(b => b.DiscountAmount) ?? 0;
+
+                // Đếm số hóa đơn
+                var sumOrder = await _context.Bills.CountAsync();
+
+                var result = new
+                {
+                    totalPrice,
+                    sumOrder
+                };
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
+        }
+        [HttpGet]
+        [Route("GetChartByMonthAll")]
+        public async Task<ActionResult<object>> GetChartDataByMonth()
+        {
+            try
+            {
+                int currentYear = DateTime.Now.Year;
+
+                var data = await _context.Bills
+                    .Where(b => b.BillDate.Year == currentYear)
+                    .GroupBy(b => new { b.BillDate.Year, b.BillDate.Month })
+                    .OrderBy(g => g.Key.Year) // Sắp xếp theo năm tăng dần
+                    .ThenBy(g => g.Key.Month) // Sau đó sắp xếp theo tháng tăng dần
+                    .Select(g => new
+                    {
+                        Date = new { year = g.Key.Year, month = g.Key.Month },
+                        TotalDiscountAmount = g.Sum(b => b.DiscountAmount ?? 0)
+                    })
+                    .ToListAsync();
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
+        }
+
     }
+
 }

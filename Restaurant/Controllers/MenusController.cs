@@ -71,9 +71,6 @@ namespace Restaurant.Controllers
 
         // Post api/menus
         [HttpPost]
-        [ProducesResponseType(201, Type = typeof(MenuDTO))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult CreateMenu([FromBody] MenuDTO menuDTO)
         {
             if (menuDTO == null)
@@ -95,16 +92,16 @@ namespace Restaurant.Controllers
             {
                 return BadRequest("Uanble to create menu");
             }
-
-            var createdMenuDTO = _mapper.Map<MenuDTO>(menu);
-            return CreatedAtAction(nameof(GetMenus), new { id = createdMenuDTO.Id }, createdMenuDTO);
+            else
+            {
+                var createdMenuDTO = _mapper.Map<MenuDTO>(menu);
+                return CreatedAtAction(nameof(GetMenus), new { id = createdMenuDTO.Id }, createdMenuDTO);
+            }
+           
         }
 
         // PUT api/menus/
         [HttpPut("upadate/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult UpdateMenu(int id, [FromBody] MenuDTO menuDTO)
         {
             if (menuDTO == null || id != menuDTO.Id)
@@ -134,9 +131,6 @@ namespace Restaurant.Controllers
 
         // DELETE api/menus/{id}
         [HttpDelete("{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult DeleteMenu(int id)
         {
             if (!_menuRepository.MenuExists(id))

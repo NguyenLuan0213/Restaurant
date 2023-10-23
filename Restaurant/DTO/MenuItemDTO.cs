@@ -13,5 +13,7 @@
         public decimal Price { get; set; }
 
         public string? Image { get; set; }
+
+        public IFormFile? File { get; set; }
     }
 }

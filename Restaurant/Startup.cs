@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Restaurant.Converters;
@@ -10,9 +9,6 @@ using Restaurant.Data;
 using Restaurant.Models.Users;
 using Restaurant.Repository;
 using Restaurant.Repository.Interfaces;
-using Restaurant.Service;
-using Restaurant.Service.Interface;
-using Restaurant.Threading;
 using Stripe;
 using System.Text;
 using Role = Restaurant.Models.Identity.Role;
@@ -115,10 +111,10 @@ namespace Restaurant
 
             services.AddDbContext<RestaurantContext>(
                 options =>
-                {
-                    options.UseMySql(Configuration.GetConnectionString("RestaurantDB"),
-                        Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.31-mysql"));
-                });
+               {
+                   options.UseMySql(Configuration.GetConnectionString("RestaurantDB"),
+                       Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.31-mysql"));
+               });
 
             services.AddSwaggerGen(option =>
             {
@@ -147,20 +143,6 @@ namespace Restaurant
                         }
                     });
             });
-
-            ////Threading
-            //var timerInterval = TimeSpan.FromMinutes(1);
-
-            //// Đăng ký OrderStatusUpdater với DI container với phạm vi Scoped
-            //services.AddScoped<OrderStatusUpdater>(sp =>
-            //{
-            //    var timerInterval = TimeSpan.FromMinutes(1); // Cung cấp giá trị timerInterval ở đây
-            //    var orderService = sp.GetRequiredService<IOrderService>();
-            //    return new OrderStatusUpdater(timerInterval, orderService);
-            //});
-
-
-
             //Sripe
             services.AddDistributedMemoryCache();
             StripeConfiguration.ApiKey = Configuration["Stripe:SecretKey"];
@@ -201,9 +183,6 @@ namespace Restaurant
             {
                 endpoints.MapControllers();
             });
-
-            //var orderStatusUpdater = app.ApplicationServices.GetRequiredService<OrderStatusUpdater>();
-            //orderStatusUpdater.Start();
         }
     }
 }

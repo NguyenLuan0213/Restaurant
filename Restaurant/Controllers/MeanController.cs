@@ -57,26 +57,6 @@ namespace Restaurant.Controllers
             return Ok(mean);
         }
 
-        //// GET: api/Mean/orderId
-        //[HttpGet("order/{orderId}")]
-        //[ProducesResponseType(200, Type = typeof(Mean))]
-        //[ProducesResponseType(400)]
-        //public IActionResult GetMeanByOrderId(int orderId)
-        //{
-        //    if (!_meanRepository.MeanExists(orderId))
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var mean = _meanRepository.GetMeanByOrderId(orderId);
-        //    if (mean == null || !mean.Any())
-        //    {
-        //        return BadRequest();
-        //    }
-        //    var meanDTO = _mapper.Map<ICollection<MeanDTO>>(mean);
-        //    return Ok(meanDTO);
-        //}
-
         // POST: api/Mean
         [HttpPost]
         [ProducesResponseType(201, Type = typeof(MeanDTO))]
@@ -110,17 +90,17 @@ namespace Restaurant.Controllers
             {
                 return BadRequest("Unable to create mean");
             }
+            else
+            {
+                var CreatedMeanDTO = _mapper.Map<MeanDTO>(mean);
 
-            var CreatedMeanDTO = _mapper.Map<MeanDTO>(mean);
-
-            return CreatedAtAction(nameof(GetMean), new { id = CreatedMeanDTO.Id }, CreatedMeanDTO);
+                return CreatedAtAction(nameof(GetMean), new { id = CreatedMeanDTO.Id }, CreatedMeanDTO);
+            }
+            
         }
 
         // PUT: api/Mean/id
         [HttpPut("update/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult UpdateMean(int id, [FromBody] MeanDTO meanDTO)
         {
             if (meanDTO == null)

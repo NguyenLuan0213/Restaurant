@@ -19,9 +19,9 @@ namespace Restaurant.Dto
 
         public decimal? TotalPrice { get; set; }
 
-        public List<MeanItemDTO> MeanItems { get; set; }
-        public UsersDTO Customer { get; set; } = null!;
+        public List<MeanItemDTO>? MeanItems { get; set; }
+        public UsersDTO? Customer { get; set; } = null!;
 
-        public TablesDTO Tables { get; set; } = null!;
+        public TablesDTO? Tables { get; set; } = null!;
     }
 }

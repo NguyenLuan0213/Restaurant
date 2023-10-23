@@ -79,9 +79,6 @@ namespace Restaurant.Controllers
 
         // Post api/MeanItem
         [HttpPost]
-        [ProducesResponseType(201, Type = typeof(MeanItemDTO))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult CreateMeanIteam([FromBody] MeanItemDTO meanItemDTO)
         {
             if (meanItemDTO == null)
@@ -128,9 +125,6 @@ namespace Restaurant.Controllers
 
         // PUT api/MeanItem/id
         [HttpPut("update/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult UpdateMeanItem(int id, [FromBody] MeanItemDTO meanItemDTO)
         {
             if (meanItemDTO == null)
@@ -171,9 +165,6 @@ namespace Restaurant.Controllers
 
         // DELETE api/MeanItem/id
         [HttpDelete("delete/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult DeleteMeanItem(int id)
         {
             if (!_meanItemRepository.MeanIteamExists(id))

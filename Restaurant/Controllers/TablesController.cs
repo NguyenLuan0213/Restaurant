@@ -114,9 +114,6 @@ namespace Restaurant.Controllers
 
         // POST: api/Tables
         [HttpPost]
-        [ProducesResponseType(201, Type = typeof(TablesDTO))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult PostTables([FromBody] TablesDTO tablesDTO)
         {
             if (tablesDTO == null)
@@ -140,19 +137,17 @@ namespace Restaurant.Controllers
             {
                 return BadRequest("Unable to create restaurant");
             }
+            else
+            {
+                var createdTablesDTO = _mapper.Map<TablesDTO>(table);
 
-            // Ánh xạ lại đối tượng thành DTO để trả về cho client
-            var createdTablesDTO = _mapper.Map<TablesDTO>(table);
-
-            // Trả về mã trạng thái 201 Created và đối tượng đã được tạo
-            return CreatedAtAction(nameof(GetTables), new { id = createdTablesDTO.Id }, createdTablesDTO);
+                return CreatedAtAction(nameof(GetTables), new { id = createdTablesDTO.Id }, createdTablesDTO);
+            }
+            
         }
 
         // PUT: api/Tables/update
         [HttpPut("update/{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public IActionResult PutTable(int id, [FromBody] TablesDTO tableDTO)
         {
             if (tableDTO == null || id != tableDTO.Id)
