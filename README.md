@@ -11,8 +11,8 @@ Video cài : https://youtu.be/gqjs9Ou4UIs?si=tPCHv8t1AT_lq4gn
 
 # Các bước chạy project
 1 : Tải project:
-```
 $ Bật Git Bash Here ở thư mục chứa và nhập lệnh:
+
 ```
 git clone https://github.com/NguyenLuan0213/Restaurant.git
 ```
@@ -22,15 +22,19 @@ git clone https://github.com/NguyenLuan0213/Restaurant.git
 - Bật Mysql Mysql Workbench
 - Tạo một kết nối Mysql Connections với tên là demo, post: 3306, Hostname: 127.0.0.1, Username: root, Password: 123456, rồi ấn Ok
 - Tạo một schema in the connected service với tên là 
+
 ```
 restaurant_demo
 ```
+
 - Phía dưới phần Charset/Collation, cái đầu chọn utf8mb4, cái sau tiếp là utf8mb4-unicode
 - Rồi ấn Apply, nó hiện một cái bảng tiếp tục ấn Apply, ấn Finish
 - Chọn Server, chọn Data Import, chọn tiếp Import from Self-Contained File, ấn dấu 3 ... cùng hàng đó, vào thư mục tải xuống lúc nãy chọn file có tên là 
+
 ```
 21-10-2023.sql
 ```
+
 - Sau đó phần Default Target Schema chọn cái restaurant_demo mới tạo lúc nãy
 - Rồi ấn Start Import
 - Kiểm ra xem các bảng đã có dữ liệu chưa và hoàng tất bước tạo data
