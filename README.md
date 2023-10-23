@@ -1,4 +1,4 @@
-# 💖 Chào mọi người đén với Website đặt bàn nhà hàng💖
+# 💖 Chào mọi người đến với Website đặt bàn nhà hàng💖
 
 # Đầu tiên để chạy được dự án, mọi người cần phải:
 - Cài trước vscode
@@ -7,22 +7,23 @@
 # Các bước chạy project
 1 : Tải project project:
 ```
-$ Bật Git Bash Here ở thư mục chứa
+$ Bật Git Bash Here ở thư mục chứa và nhập lệnh :
 ```
-$ Nhập lệnh: git clone https://github.com/NguyenLuan0213/Restaurant_FE.git và chờ tải về hoàng tất
+git clone https://github.com/NguyenLuan0213/Restaurant_FE.git và chờ tải về hoàng tất
 ```
 
 2 : Mở VSCODE, và mở forder Restaurant_FE nằm trong thư mục chứa hồi nãy, bật Terminal và nhập các lệnh  
 ```
 npm install 
-Để tải đầy đủ các tool và frameword của dự án
 ```
+- Để tải đầy đủ các tool và frameword của dự án
 
 3 : Sau đó nhập code dưới để chạy dự án:
 ```
 npm start
 
 ```
+
 Khi chạy dự án, nó sẽ lấy dữ liệu từ dự án BE đã chạy trước đó.
 
 # Preview
