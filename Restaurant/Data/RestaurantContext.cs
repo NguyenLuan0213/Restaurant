@@ -110,11 +110,11 @@ public class RestaurantContext : IdentityDbContext<User, Role, Guid, UserClaim, 
                 .IsRequired();
         });
 
-        modelBuilder.Entity<UserRole>().ToTable("UserRoles").HasKey(x => new { x.UserId, x.RoleId });
-        modelBuilder.Entity<RoleClaim>().ToTable("RoleClaims");
-        modelBuilder.Entity<UserClaim>().ToTable("UserClaims");
-        modelBuilder.Entity<UserLogin>().ToTable("UserLogins").HasKey(x => new { x.LoginProvider, x.ProviderKey });
-        modelBuilder.Entity<UserToken>().ToTable("UserTokens").HasKey(x => new { x.UserId, x.LoginProvider, x.Name });
+        modelBuilder.Entity<UserRole>().ToTable("userroles").HasKey(x => new { x.UserId, x.RoleId });
+        modelBuilder.Entity<RoleClaim>().ToTable("roleclaims");
+        modelBuilder.Entity<UserClaim>().ToTable("userclaims");
+        modelBuilder.Entity<UserLogin>().ToTable("userlogins").HasKey(x => new { x.LoginProvider, x.ProviderKey });
+        modelBuilder.Entity<UserToken>().ToTable("usertokens").HasKey(x => new { x.UserId, x.LoginProvider, x.Name });
         //SeedRoles(modelBuilder);
 
         modelBuilder
@@ -213,14 +213,7 @@ public class RestaurantContext : IdentityDbContext<User, Role, Guid, UserClaim, 
             entity.Property(e => e.Description)
                 .HasColumnType("text")
                 .HasColumnName("description");
-            //entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.TotalPrice).HasColumnName("totalPrice");
-
-            //modelBuilder.Entity<Mean>()
-            //    .HasOne(o => o.Order)
-            //    .WithOne()
-            //    .HasForeignKey<Mean>(m => m.Id)
-            //    .HasConstraintName("fk_mean_order");
         });
 
         modelBuilder.Entity<Meanitem>(entity =>

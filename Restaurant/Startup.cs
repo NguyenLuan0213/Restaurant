@@ -150,7 +150,7 @@ namespace Restaurant
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddSession(options =>
             {
-                options.IdleTimeout = TimeSpan.FromMinutes(30); // Thời gian phiên tồn tại
+                options.IdleTimeout = TimeSpan.FromMinutes(5); // Thời gian phiên tồn tại
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true; // Đảm bảo phiên là bắt buộc
             });

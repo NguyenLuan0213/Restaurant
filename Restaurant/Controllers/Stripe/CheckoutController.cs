@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Restaurant.Dto;
 using Stripe;
 using Stripe.Checkout;
@@ -19,78 +20,22 @@ public class CheckoutController : ControllerBase
         _configuration = configuration;
     }
 
-    [HttpPost("create-checkout-session")]
-    public IActionResult CreateSession([FromBody] OrderDTO orderDTO)
-    {
-        decimal amount = orderDTO.TotalPrice ?? 0.0m;
-        try
-        { 
-        var options = new SessionCreateOptions
-        {
-            PaymentMethodTypes = new List<string>
-            {
-                "card",
-            },
-            LineItems = new List<SessionLineItemOptions>
-            {
-                new SessionLineItemOptions
-                {
-                    PriceData = new SessionLineItemPriceDataOptions
-                    {
-                        UnitAmount =(long?)amount,
-                        Currency = "VND",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = orderDTO.Id.ToString(),
-                        },
-                    },
-                    Quantity = 1,
-                },
-            },
-            Mode = "payment",
-            SuccessUrl = "https://example.com/success",
-            CancelUrl = "https://example.com/cancel",
-        };  
-        var service = new SessionService();
-        Session session = service.Create(options);
-        return new JsonResult(
-                new
-                {
-                    sessionId = session.Id,
-                    url = session.Url,
-
-                });
-        }
-        catch (StripeException e)
-        {
-            return new JsonResult(new { error = e.Message });
-        }
-
-    }
-
-    [HttpPost("checkout")]
+    [HttpPost("create-payment-intent")]
     public IActionResult CreatePaymentIntent([FromBody] OrderDTO orderDTO)
     {
-        System.Diagnostics.Debug.WriteLine("nó có vào hàm thanh toán");
-
         decimal amount = orderDTO.TotalPrice ?? 0.0m;
-        var productsPost = new List<object>();
 
         try
         {
-            StripeConfiguration.ApiKey = "sk_test_51Mm6CAJTSCX72rEN0osGovCVaSKimGjDCkJjqJmA4vxPFvOav5pfxsJwuaNsm2GQOObTWTsiyY5zPog6FIrVBSgf00zDD66h8d";
+            StripeConfiguration.ApiKey = "sk_test_51MlntRFtuguvBwBegX36MX391lBGHAE75zGQnaAt7HJUXi94ZTFAVUaiZUESK4c2TfhodRDNXXLGdc4CMrBS9FEN002Y7DiRvP";
 
-            var options = new PaymentIntentCreateOptions
+            var paymentIntentService = new PaymentIntentService();
+            var paymentIntent = paymentIntentService.Create(new PaymentIntentCreateOptions
             {
-                Amount = (long?)amount, // Convert to cents
-                Currency = "vnd",
+                Amount = (long?)amount,
+                Currency = "VND",
                 PaymentMethodTypes = new List<string> { "card" },
-                Metadata = new Dictionary<string, string>
-                   {
-                       { "customer_name", orderDTO.Id.ToString() ?? "" },
-                       { "customer_phone", orderDTO.Id.ToString() ?? "" },
-                       { "customer_address", orderDTO.Id.ToString() ?? "" },
-                   },
+                // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
                 PaymentMethodOptions = new PaymentIntentPaymentMethodOptionsOptions
                 {
                     Card = new PaymentIntentPaymentMethodOptionsCardOptions
@@ -98,20 +43,22 @@ public class CheckoutController : ControllerBase
                         RequestThreeDSecure = "automatic"
                     }
                 }
-            };
+            });
 
-            var service = new PaymentIntentService();
-            var intent = service.Create(options);
-
-            return new JsonResult(
-                new { 
-                    client_secret = intent.ClientSecret,
-                });
+            return new JsonResult(new { clientSecret = paymentIntent.ClientSecret });
         }
         catch (StripeException e)
         {
             return new JsonResult(new { error = e.Message });
         }
+    }
+
+    [HttpGet("loadPubKey")]
+    public IActionResult LoadPubKey()
+    {
+
+        // Trả về khóa bí mật
+        return new JsonResult(new { pubKey = "pk_test_51MlntRFtuguvBwBePPJrdA6ZJ6CtY5Or5sJqf1vH8qi1eT7oyikE8pZSgS8o70aI8qgZeInyfEv00yvMveVMl7Xu00yJetHxZl" });
     }
 
     [HttpGet("success")]
