@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using Org.BouncyCastle.Asn1.Ocsp;
 using Restaurant.Dto;
 using Stripe;
 using Stripe.Checkout;
@@ -56,7 +54,6 @@ public class CheckoutController : ControllerBase
     [HttpGet("loadPubKey")]
     public IActionResult LoadPubKey()
     {
-
         // Trả về khóa bí mật
         return new JsonResult(new { pubKey = "pk_test_51MlntRFtuguvBwBePPJrdA6ZJ6CtY5Or5sJqf1vH8qi1eT7oyikE8pZSgS8o70aI8qgZeInyfEv00yvMveVMl7Xu00yJetHxZl" });
     }

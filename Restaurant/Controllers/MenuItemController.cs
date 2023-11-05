@@ -22,9 +22,10 @@ namespace Restaurant.Controllers
     {
         private readonly Cloudinary _cloudinary;
         private readonly IMenuItemRepository _menuItemRepository;
+        private readonly IMenuRepository _menuRepository;
         private readonly IMapper _mapper;
 
-        public MenuItemController(IMenuItemRepository menuItemRepository, IMapper mapper)
+        public MenuItemController(IMenuItemRepository menuItemRepository, IMapper mapper, IMenuRepository menuRepository)
         {
             var cloudinaryCredentials = new CloudinaryDotNet.Account(
             "dkba7robk",
@@ -32,7 +33,9 @@ namespace Restaurant.Controllers
             "TxTGacbxcxoBBarPbpPwB4XCuc0");
             _cloudinary = new Cloudinary(cloudinaryCredentials);
             _menuItemRepository = menuItemRepository;
+            _menuRepository = menuRepository;
             _mapper = mapper;
+            _menuRepository = menuRepository;
         }
 
         // GET: api/MenuItem
@@ -86,7 +89,20 @@ namespace Restaurant.Controllers
         }
 
 
-        // GET: api/MenuItem/menu
+        //// GET: api/MenuItem/menu
+        //[HttpGet("menu/{id}")]
+        //public IActionResult GetMenuItemByMenu(int id)
+        //{
+        //    var menuItem = _menuItemRepository.GetMenuItemByMenu(id);
+        //    if (menuItem == null || !menuItem.Any())
+        //    {
+        //        return NotFound();
+        //    }
+        //    var menuItemDTO = _mapper.Map<ICollection<MenuItemDTO>>(menuItem);
+
+        //    return Ok(menuItemDTO);
+        //}
+
         [HttpGet("menu/{id}")]
         public IActionResult GetMenuItemByMenu(int id)
         {
@@ -95,10 +111,29 @@ namespace Restaurant.Controllers
             {
                 return NotFound();
             }
+
+            // Lấy menu cụ thể bằng menuId
+            var menu = _menuRepository.GetMenuId(menuItem.First().MenuId);
+
+            if (menu == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy restaurantId từ menu
+            int restaurantId = menu.RestaurantId;
+
             var menuItemDTO = _mapper.Map<ICollection<MenuItemDTO>>(menuItem);
+
+            // Đối với mỗi menuItemDTO, thêm restaurantId
+            foreach (var item in menuItemDTO)
+            {
+                item.RestaurantId = restaurantId;
+            }
 
             return Ok(menuItemDTO);
         }
+
 
         // POST: api/MenuItem
         [HttpPost("add")]

@@ -36,8 +36,6 @@ namespace Restaurant.Controllers
         }
 
         [HttpGet("{id}")]
-        [ProducesResponseType(200, Type = typeof(Promotion))]
-        [ProducesResponseType(400)]
         public IActionResult GetPromotionId(int id)
         {
             if (!_promotionsRepository.PromotionExists(id))

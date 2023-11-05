@@ -14,6 +14,8 @@
 
         public string? Image { get; set; }
 
+        public int? RestaurantId { get; set; }
+
         public IFormFile? File { get; set; }
     }
 }
